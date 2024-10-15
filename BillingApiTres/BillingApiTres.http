@@ -1,0 +1,6 @@
+@BillingApiTres_HostAddress = http://localhost:5152
+
+GET {{BillingApiTres_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
