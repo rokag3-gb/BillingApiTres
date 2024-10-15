@@ -1,4 +1,13 @@
+﻿using Billing.Data.Interfaces;
+using Billing.Data.Models;
+using Billing.EF.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+
 
 [assembly: ApiController]
 namespace BillingApiTres
@@ -10,25 +19,65 @@ namespace BillingApiTres
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            #region regist repositories
+            builder.Services.AddScoped<ITenantRepository, TenantRepository>();
+            #endregion
+
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidIssuer = builder.Configuration.GetValue<string>("Jwt:Issuer"),
+                        ValidAudience = builder.Configuration.GetValue<string>("Jwt:Audience")
+                    };
+                });
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new OpenApiInfo { Title = "Billing3", Version = "v1" });
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "BillingApiTres.xml"));
+
+                var securityScheme = new OpenApiSecurityScheme
+                {
+                    Description = @"Header 의 Authorizationdp 들어갈 JWT Bearer 인가 토큰. (예시: `eyJ...In0.eyJ...CJ9.ZLo...IDQ`)",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT"
+                };
+                var securityRequirement = new OpenApiSecurityRequirement {
+                    {  securityScheme, new string[] {} } };
+
+                options.AddSecurityDefinition("Bearer", securityScheme);
+                options.AddSecurityRequirement(securityRequirement);
+            });
+            
+
+            builder.Services.AddDbContext<IAMContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration["IamDbConnection"]);
+            });
 
             var app = builder.Build();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             // Configure the HTTP request pipeline.
             //if (app.Environment.IsDevelopment())
             //{
-                app.UseSwagger();
-                app.UseSwaggerUI();
+            app.UseSwagger();
+            app.UseSwaggerUI();
             //}
 
             app.UseHttpsRedirection();
-
-            app.UseAuthorization();
-
             app.MapControllers();
 
             app.Run();
