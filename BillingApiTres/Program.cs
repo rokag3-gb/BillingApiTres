@@ -1,12 +1,15 @@
 ﻿using Billing.Data.Interfaces;
 using Billing.Data.Models;
 using Billing.EF.Repositories;
+using BillingApiTres.Models.Dto;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.IdentityModel.Tokens.Jwt;
 
 
 [assembly: ApiController]
@@ -23,6 +26,8 @@ namespace BillingApiTres
             builder.Services.AddScoped<ITenantRepository, TenantRepository>();
             #endregion
 
+            builder.Services.AddMapperBillingTypes();
+
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                 {
@@ -30,8 +35,10 @@ namespace BillingApiTres
                     {
                         ValidateIssuer = true,
                         ValidateAudience = true,
+                        ValidateIssuerSigningKey = false,
                         ValidIssuer = builder.Configuration.GetValue<string>("Jwt:Issuer"),
-                        ValidAudience = builder.Configuration.GetValue<string>("Jwt:Audience")
+                        ValidAudience = builder.Configuration.GetValue<string>("Jwt:Audience"),
+                        SignatureValidator = (t, p) => new JsonWebToken(t)
                     };
                 });
 
@@ -45,7 +52,7 @@ namespace BillingApiTres
 
                 var securityScheme = new OpenApiSecurityScheme
                 {
-                    Description = @"Header 의 Authorizationdp 들어갈 JWT Bearer 인가 토큰. (예시: `eyJ...In0.eyJ...CJ9.ZLo...IDQ`)",
+                    Description = @"Header 의 Authorization에 들어갈 JWT Bearer 인가 토큰. (예시: `eyJ...In0.eyJ...CJ9.ZLo...IDQ`)",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.Http,
@@ -56,14 +63,27 @@ namespace BillingApiTres
                     {  securityScheme, new string[] {} } };
 
                 options.AddSecurityDefinition("Bearer", securityScheme);
-                options.AddSecurityRequirement(securityRequirement);
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        }, 
+                        new string[] {}
+                    }
+                });
             });
-            
 
             builder.Services.AddDbContext<IAMContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration["IamDbConnection"]);
             });
+
 
             var app = builder.Build();
 
