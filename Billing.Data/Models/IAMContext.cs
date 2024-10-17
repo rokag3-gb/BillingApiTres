@@ -13,68 +13,35 @@ public partial class IAMContext : DbContext
     {
     }
 
-    public virtual DbSet<Org> Orgs { get; set; }
+    public virtual DbSet<ServiceHierarchy> ServiceHierarchies { get; set; }
 
     public virtual DbSet<Tenant> Tenants { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Org>(entity =>
+        modelBuilder.Entity<ServiceHierarchy>(entity =>
         {
-            entity.HasKey(e => e.OrgSno).IsClustered(false);
+            entity.HasKey(e => e.Sno)
+                .HasName("PK_ServiceHierarchy_Sno")
+                .IsClustered(false);
 
-            entity.ToTable("Org");
-
-            entity.HasIndex(e => new { e.TenantId, e.ParentAccId, e.AccountId }, "IDX_unique_Org_TenantId_ParentAccId_AccountId")
+            entity.HasIndex(e => new { e.TenantId, e.ParentAccId, e.AccountId }, "IDX_unique_ServiceHierarchy_TenantId_ParentAccId_AccountId")
                 .IsUnique()
                 .IsClustered();
 
-            entity.Property(e => e.AccountId).HasComment("자식 account id");
-            entity.Property(e => e.EndDate)
-                .HasComment("계약 만료 일(미확정)")
-                .HasColumnType("datetime");
-            entity.Property(e => e.SavedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.SaverId)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.StartDate)
-                .HasComment("계약 시작 일 (미확정)")
-                .HasColumnType("datetime");
-            entity.Property(e => e.TenantId)
-                .HasMaxLength(20)
-                .IsUnicode(false);
+            entity.Property(e => e.SavedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Tenant).WithMany(p => p.ServiceHierarchies)
+                .HasPrincipalKey(p => p.TenantId)
+                .HasForeignKey(d => d.TenantId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ServiceHierarchy_TenantId");
         });
 
         modelBuilder.Entity<Tenant>(entity =>
         {
-            entity.HasKey(e => e.Sno);
-
-            entity.ToTable("Tenant");
-
-            entity.HasIndex(e => new { e.RealmName, e.OwnerId }, "IDX_Tenant_RealmName_OwnerId").IsUnique();
-
-            entity.HasIndex(e => e.TenantId, "IDX_Tenant_TenantId").IsUnique();
-
-            entity.Property(e => e.Sno).HasColumnName("SNo");
-            entity.Property(e => e.EndDate).HasColumnType("datetime");
-            entity.Property(e => e.RealmName)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.Remark).HasMaxLength(1000);
-            entity.Property(e => e.SavedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.SaverId)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.StartDate).HasColumnType("datetime");
-            entity.Property(e => e.TenantId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasComputedColumnSql("(CONVERT([varchar](50),concat(CONVERT([varchar](10),left(lower([RealmName]),(10))),CONVERT([varchar](1),'-'),CONVERT([varchar](3),right(lower(CONVERT([varchar](50),[TUId])),(3))),CONVERT([varchar](2),right('00'+CONVERT([varchar],[SNo]),(2))))))", true);
-            entity.Property(e => e.Tuid).HasColumnName("TUId");
+            entity.Property(e => e.SavedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.TenantId).HasComputedColumnSql("(CONVERT([varchar](50),concat(CONVERT([varchar](10),left(lower([RealmName]),(10))),CONVERT([varchar](1),'-'),CONVERT([varchar](3),right(lower(CONVERT([varchar](50),[TUId])),(3))),CONVERT([varchar](2),right('00'+CONVERT([varchar],[SNo]),(2))))))", true);
         });
 
         OnModelCreatingPartial(modelBuilder);

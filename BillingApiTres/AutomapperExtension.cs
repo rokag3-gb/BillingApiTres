@@ -8,6 +8,7 @@ namespace BillingApiTres
         public static IServiceCollection AddMapperBillingTypes(this IServiceCollection collection)
         {
             collection.AddAutoMapper(typeof(TenantResponse));
+            collection.AddAutoMapper(typeof(ServiceHierarchyResponse));
             return collection;
         }
     }

@@ -1,6 +1,7 @@
 ﻿using Billing.Data.Interfaces;
 using Billing.Data.Models;
 using Billing.EF.Repositories;
+using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +25,11 @@ namespace BillingApiTres
             // Add services to the container.
             #region regist repositories
             builder.Services.AddScoped<ITenantRepository, TenantRepository>();
+            builder.Services.AddScoped<IServiceHierarchyRepository, ServiceHierarchyRepository>();
+            #endregion
+
+            #region regist Http Client
+            builder.Services.AddHttpClient<SalesClient>(c => c.BaseAddress = new Uri(builder.Configuration["sales_url"]!));
             #endregion
 
             builder.Services.AddMapperBillingTypes();

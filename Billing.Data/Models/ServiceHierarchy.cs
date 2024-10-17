@@ -8,27 +8,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Billing.Data.Models;
 
-[Table("Tenant")]
-[Index("RealmName", "OwnerId", Name = "IDX_Tenant_RealmName_OwnerId", IsUnique = true)]
-[Index("TenantId", Name = "IDX_Tenant_TenantId", IsUnique = true)]
-public partial class Tenant
+[Table("ServiceHierarchy")]
+public partial class ServiceHierarchy
 {
+    [Key]
+    public long Sno { get; set; }
+
     [StringLength(50)]
     [Unicode(false)]
     public string TenantId { get; set; } = null!;
 
-    [StringLength(50)]
-    [Unicode(false)]
-    public string RealmName { get; set; } = null!;
+    public long ParentAccId { get; set; }
 
-    public long OwnerId { get; set; }
-
-    [Column("TUId")]
-    public Guid Tuid { get; set; }
-
-    [Key]
-    [Column("SNo")]
-    public long Sno { get; set; }
+    public long AccountId { get; set; }
 
     public bool IsActive { get; set; }
 
@@ -38,9 +30,6 @@ public partial class Tenant
     [Column(TypeName = "datetime")]
     public DateTime EndDate { get; set; }
 
-    [StringLength(1000)]
-    public string? Remark { get; set; }
-
     [Column(TypeName = "datetime")]
     public DateTime SavedAt { get; set; }
 
@@ -48,6 +37,7 @@ public partial class Tenant
     [Unicode(false)]
     public string? SaverId { get; set; }
 
-    [InverseProperty("Tenant")]
-    public virtual ICollection<ServiceHierarchy> ServiceHierarchies { get; set; } = new List<ServiceHierarchy>();
+    [ForeignKey("TenantId")]
+    [InverseProperty("ServiceHierarchies")]
+    public virtual Tenant Tenant { get; set; } = null!;
 }
