@@ -63,7 +63,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             return config.CreateMapper().Map<ServiceHierarchyResponse>(response);
         }
 
-        [HttpGet("/service-organizations/{accountId}/hierachy")]
+        [HttpGet("/service-organizations/{accountId}/hierarchy")]
         public async Task<List<ServiceHierarchyResponse>> GetList(int accountId)
         {
             var parent = await serviceHierachyRepository.GetParent(accountId);

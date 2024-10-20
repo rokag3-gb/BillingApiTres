@@ -42,5 +42,11 @@ namespace Billing.EF.Repositories
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.Sno == serialNo);
         }
+
+        public async Task Update(ServiceHierarchy entity)
+        {
+            iamContext.ServiceHierarchies.Update(entity);
+            await iamContext.SaveChangesAsync();
+        }
     }
 }
