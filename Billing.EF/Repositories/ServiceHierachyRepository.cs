@@ -49,6 +49,15 @@ namespace Billing.EF.Repositories
             await iamContext.SaveChangesAsync();
         }
 
+        public async Task<ServiceHierarchy> Add(ServiceHierarchy entity)
+        {
+            entity.Tenant = iamContext.Tenants.Single(t => t.TenantId == entity.TenantId);
+            var added = iamContext.ServiceHierarchies.Add(entity);
+            await iamContext.SaveChangesAsync();
+
+            return added.Entity;
+        }
+
         public async Task Delete(long serialNo)
         {
             await iamContext.ServiceHierarchies.Where(s => s.Sno == serialNo).ExecuteDeleteAsync();
