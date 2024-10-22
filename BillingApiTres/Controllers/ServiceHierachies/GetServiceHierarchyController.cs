@@ -4,6 +4,7 @@ using Billing.Data.Interfaces;
 using Billing.Data.Models;
 using Billing.EF.Repositories;
 using BillingApiTres.Controllers.Tenants;
+using BillingApiTres.Converters;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
@@ -36,18 +37,17 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             if (response == null)
                 return null;
 
-            var token = HttpContext.Request.Headers.Authorization.ToString();
-            if (token.Split(" ").Count() >= 2)
-                token = token.Split(" ")[1];
+            var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
 
             SalesAccount? parentAccount = default;
             if (response.ParentAccId > 0)
-                parentAccount = await salesClient.Get<SalesAccount>($"account/{response.ParentAccId}", token!);
-            var account = await salesClient.Get<SalesAccount>($"account/{response.AccountId}", token!);
+                parentAccount = await salesClient.Get<SalesAccount>($"account/{response.ParentAccId}", token?.RawData!);
+            var account = await salesClient.Get<SalesAccount>($"account/{response.AccountId}", token?.RawData!);
+            var list = new List<SalesAccount> { parentAccount ?? new(), account };
 
             return mapper.Map<ServiceHierarchyResponse>(response, options =>
             {
-                options.Items["accounts"] = new List<SalesAccount> { account };
+                options.Items["accounts"] = list;
             });
         }
 
@@ -61,11 +61,8 @@ namespace BillingApiTres.Controllers.ServiceHierachies
                 return new List<ServiceHierarchyResponse>();
             }
 
-            var token = HttpContext.Request.Headers.Authorization.ToString();
-            if (token.Split(" ").Count() >= 2)
-                token = token.Split(" ")[1];
-
-            var accounts = await salesClient.Get<List<SalesAccount>>("account?limit=99999", token!);
+            var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
+            var accounts = await salesClient.Get<List<SalesAccount>>("account?limit=99999", token?.RawData!);
             
             AccountType accountType = AccountType.None;
             if (parent.ParentAccId == 0)
