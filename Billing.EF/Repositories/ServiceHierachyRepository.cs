@@ -48,5 +48,10 @@ namespace Billing.EF.Repositories
             iamContext.ServiceHierarchies.Update(entity);
             await iamContext.SaveChangesAsync();
         }
+
+        public async Task Delete(long serialNo)
+        {
+            await iamContext.ServiceHierarchies.Where(s => s.Sno == serialNo).ExecuteDeleteAsync();
+        }
     }
 }
