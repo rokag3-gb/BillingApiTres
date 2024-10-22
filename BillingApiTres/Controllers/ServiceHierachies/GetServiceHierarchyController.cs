@@ -45,22 +45,10 @@ namespace BillingApiTres.Controllers.ServiceHierachies
                 parentAccount = await salesClient.Get<SalesAccount>($"account/{response.ParentAccId}", token!);
             var account = await salesClient.Get<SalesAccount>($"account/{response.AccountId}", token!);
 
-            var config = new MapperConfiguration(cfg =>
+            return mapper.Map<ServiceHierarchyResponse>(response, options =>
             {
-                cfg.CreateMap<ServiceHierarchy, ServiceHierarchyResponse>()
-                    .ForMember(dest => dest.TenantId, opt => opt.MapFrom(src => src.TenantId))
-                    .ForMember(dest => dest.SerialNo, opt => opt.MapFrom(src => src.Sno))
-                    .ForMember(dest => dest.RealmName, opt => opt.MapFrom(src => src.Tenant.RealmName))
-                    .ForMember(dest => dest.ContractorId, opt => opt.MapFrom(src => src.ParentAccId))
-                    .ForMember(dest => dest.ContractorName, opt => opt.MapFrom((src => parentAccount != null ? parentAccount.AccountName : string.Empty)))
-                    .ForMember(dest => dest.ContracteeId, opt => opt.MapFrom(src => src.AccountId))
-                    .ForMember(dest => dest.ContracteeName, opt => opt.MapFrom(src => account.AccountName))
-                    .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
-                    .ForMember(dest => dest.ContractDate, opt => opt.MapFrom(src => src.StartDate))
-                    .ForMember(dest => dest.ExpireDate, opt => opt.MapFrom(src => src.EndDate));
+                options.Items["accounts"] = new List<SalesAccount> { account };
             });
-
-            return config.CreateMapper().Map<ServiceHierarchyResponse>(response);
         }
 
         [HttpGet("/service-organizations/{accountId}/hierarchy")]
@@ -78,30 +66,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
                 token = token.Split(" ")[1];
 
             var accounts = await salesClient.Get<List<SalesAccount>>("account?limit=99999", token!);
-
-            var config = new MapperConfiguration(cfg =>
-            {
-                cfg.CreateMap<ServiceHierarchy, ServiceHierarchyResponse>()
-                    .ForMember(dest => dest.TenantId, opt => opt.MapFrom(src => src.TenantId))
-                    .ForMember(dest => dest.SerialNo, opt => opt.MapFrom(src => src.Sno))
-                    .ForMember(dest => dest.RealmName, opt => opt.MapFrom(src => src.Tenant.RealmName))
-                    .ForMember(dest => dest.ContractorId, opt => opt.MapFrom(src => src.ParentAccId))
-                    .ForMember(dest => dest.ContractorName, opt => opt.MapFrom<string?>((s, d) =>
-                    {
-                        return accounts.Where(a => a.AccountId == s.ParentAccId)?.FirstOrDefault()?.AccountName ?? "";
-                    }))
-                    .ForMember(dest => dest.ContracteeId, opt => opt.MapFrom(src => src.AccountId))
-                    .ForMember(dest => dest.ContracteeName, opt => opt.MapFrom<string>((s, d) =>
-                    {
-                        return accounts.Where(a => a.AccountId == s.AccountId).FirstOrDefault()?.AccountName ?? "";
-                    }))
-                    .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
-                    .ForMember(dest => dest.ContractDate, opt => opt.MapFrom(src => src.StartDate))
-                    .ForMember(dest => dest.ExpireDate, opt => opt.MapFrom(src => src.EndDate));
-            });
-
-            var mapper = config.CreateMapper();
-
+            
             AccountType accountType = AccountType.None;
             if (parent.ParentAccId == 0)
                 accountType = AccountType.Acme;
@@ -114,10 +79,13 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             {
                 var responses = new List<ServiceHierarchyResponse>();
 
-                responses.Add(mapper.Map<ServiceHierarchyResponse>(parent));
+                responses.Add(mapper.Map<ServiceHierarchyResponse>(parent, options =>
+                {
+                    options.Items["accounts"] = accounts;
+                }));
                 var partners = await serviceHierachyRepository.GetChild(accountId);
 
-                var res = await MapMany(mapper, partners);
+                var res = await MapMany(mapper, partners, accounts);
                 responses.AddRange(res);
 
                 return responses;
@@ -125,19 +93,22 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             else if (accountType == AccountType.Partner)
             {
                 var responses = new List<ServiceHierarchyResponse>();
-                responses.AddRange(ConfigureParent(mapper, parent));
+                responses.AddRange(ConfigureParent(mapper, parent, accounts));
                 var customers = await serviceHierachyRepository.GetChild(accountId);
-                responses.AddRange(customers.Select(c =>  mapper.Map<ServiceHierarchyResponse>(c)));
+                responses.AddRange(customers.Select(c =>  mapper.Map<ServiceHierarchyResponse>(c, options =>
+                {
+                    options.Items["accounts"] = accounts;
+                })));
 
                 return responses;
             }
             else
             {
-                return ConfigureParent(mapper, parent);
+                return ConfigureParent(mapper, parent, accounts);
             }
         }
 
-        private List<ServiceHierarchyResponse> ConfigureParent(IMapper mapper, ServiceHierarchy item)
+        private List<ServiceHierarchyResponse> ConfigureParent(IMapper mapper, ServiceHierarchy item, List<SalesAccount> accounts)
         {
             var responses = new List<ServiceHierarchyResponse>();
 
@@ -147,24 +118,36 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             item.AccountId = item.ParentAccId;
             item.ParentAccId = 0;
             
-            responses.Add(mapper.Map<ServiceHierarchyResponse>(item));
+            responses.Add(mapper.Map<ServiceHierarchyResponse>(item, options =>
+            {
+                options.Items["accounts"] = accounts;
+            }));
 
             item.ParentAccId = parentId;
             item.AccountId = accId;
-            responses.Add(mapper.Map<ServiceHierarchyResponse>(item));
+            responses.Add(mapper.Map<ServiceHierarchyResponse>(item, options =>
+            {
+                options.Items["accounts"] = accounts;
+            }));
 
             return responses;
         }
 
 
-        private async Task<List<ServiceHierarchyResponse>> MapMany(IMapper mapper, List<ServiceHierarchy> source)
+        private async Task<List<ServiceHierarchyResponse>> MapMany(IMapper mapper, List<ServiceHierarchy> source, List<SalesAccount> accounts)
         {
             List<ServiceHierarchyResponse> responses = new();
             foreach (var sourceItem in source)
             {
-                responses.Add(mapper.Map<ServiceHierarchyResponse>(sourceItem));
+                responses.Add(mapper.Map<ServiceHierarchyResponse>(sourceItem, options =>
+                {
+                    options.Items["accounts"] = accounts;
+                }));
                 var customers = await serviceHierachyRepository.GetChild(sourceItem.AccountId);
-                responses.AddRange(customers.Select(c => mapper.Map<ServiceHierarchyResponse>(c)));
+                responses.AddRange(customers.Select(c => mapper.Map<ServiceHierarchyResponse>(c, options =>
+                {
+                    options.Items["accounts"] = accounts;
+                })));
             }
             return responses;
         }
