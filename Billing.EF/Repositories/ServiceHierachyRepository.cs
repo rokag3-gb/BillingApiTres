@@ -65,9 +65,10 @@ namespace Billing.EF.Repositories
             return added.Entity;
         }
 
-        public async Task Delete(long serialNo)
+        public async Task Delete(ServiceHierarchy entity)
         {
-            await iamContext.ServiceHierarchies.Where(s => s.Sno == serialNo).ExecuteDeleteAsync();
+            iamContext.Remove(entity);
+            await iamContext.SaveChangesAsync();
         }
     }
 }
