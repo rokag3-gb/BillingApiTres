@@ -31,7 +31,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         }
 
         [HttpGet("/service-organizations/{serialNo}")]
-        public async Task<ActionResult<ServiceHierarchyResponse>> Get(int serialNo)
+        public async Task<ActionResult<ServiceHierarchyResponse>> Get(long serialNo)
         {
             var response = await serviceHierachyRepository.Get(serialNo);
             if (response == null)
@@ -52,7 +52,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         }
 
         [HttpGet("/service-organizations/{accountId}/hierarchy")]
-        public async Task<ActionResult<List<ServiceHierarchyResponse>>> GetList(int accountId)
+        public async Task<ActionResult<List<ServiceHierarchyResponse>>> GetList(long accountId)
         {
             var parent = await serviceHierachyRepository.GetParent(accountId);
             if (parent == null)
