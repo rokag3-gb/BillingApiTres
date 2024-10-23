@@ -31,11 +31,11 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         }
 
         [HttpGet("/service-organizations/{serialNo}")]
-        public async Task<ServiceHierarchyResponse?> Get(int serialNo)
+        public async Task<ActionResult<ServiceHierarchyResponse>> Get(int serialNo)
         {
             var response = await serviceHierachyRepository.Get(serialNo);
             if (response == null)
-                return null;
+                return NotFound(new { serialNo = serialNo });
 
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
 
@@ -52,13 +52,13 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         }
 
         [HttpGet("/service-organizations/{accountId}/hierarchy")]
-        public async Task<List<ServiceHierarchyResponse>> GetList(int accountId)
+        public async Task<ActionResult<List<ServiceHierarchyResponse>>> GetList(int accountId)
         {
             var parent = await serviceHierachyRepository.GetParent(accountId);
             if (parent == null)
             {
                 logger.LogError($"계약 공급 업체를 찾을 수 없음 : account id - {accountId}");
-                return new List<ServiceHierarchyResponse>();
+                return NoContent();
             }
 
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);

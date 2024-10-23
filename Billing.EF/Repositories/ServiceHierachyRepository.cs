@@ -38,7 +38,7 @@ namespace Billing.EF.Repositories
                 .ToListAsync();
         }
 
-        public async Task<ServiceHierarchy?> Get(int serialNo)
+        public async Task<ServiceHierarchy?> Get(long serialNo)
         {
             return await iamContext.ServiceHierarchies
                 .Include(s => s.Tenant)
