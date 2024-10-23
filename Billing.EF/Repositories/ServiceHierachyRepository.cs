@@ -1,11 +1,14 @@
 ﻿using Billing.Data.Interfaces;
 using Billing.Data.Models;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Markup;
 
 namespace Billing.EF.Repositories
 {
@@ -45,8 +48,12 @@ namespace Billing.EF.Repositories
 
         public async Task Update(ServiceHierarchy entity)
         {
+            using var trans = await iamContext.Database.BeginTransactionAsync();
             iamContext.ServiceHierarchies.Update(entity);
+
             await iamContext.SaveChangesAsync();
+
+            await trans.CommitAsync();
         }
 
         public async Task<ServiceHierarchy> Add(ServiceHierarchy entity)

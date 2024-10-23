@@ -17,14 +17,14 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         ILogger<GetTenantController> logger) : ControllerBase
     {
         [HttpPut("/service-organizations/{serialNo}")]
-        public async Task<ActionResult> UpdateServiceHierarchy(
+        public async Task<ActionResult<ServiceHierarchyResponse>> UpdateServiceHierarchy(
             int serialNo,
             [FromBody]ServiceHierarchyUpdateRequest updateRequest)
         {
             var entity = await serviceHierachyRepository.Get(serialNo);
 
             if (entity == null)
-                return NotFound();
+                return Conflict($"대상이 존재하지 않습니다 : {updateRequest}");
             
             entity.IsActive = updateRequest.IsActive ?? entity.IsActive;
             entity.StartDate = updateRequest.ContractDate?.ToUniversalTime() ?? entity.StartDate;

@@ -39,6 +39,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
                 options.Items["accounts"] = accounts;
             });
 
+            //return CreatedAtAction(nameof(GetServiceHierachyController.Get), new { serialNo = returnDto.SerialNo}, returnDto);
             return Ok(returnDto);
         }
     }
