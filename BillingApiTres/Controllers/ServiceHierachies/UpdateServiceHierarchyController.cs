@@ -17,8 +17,8 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         ILogger<GetTenantController> logger) : ControllerBase
     {
         [HttpPut("/service-organizations/{serialNo}")]
-        public async Task<ActionResult<ServiceHierarchyResponse>> UpdateServiceHierarchy(
-            int serialNo,
+        public async Task<ActionResult<long>> UpdateServiceHierarchy(
+            long serialNo,
             [FromBody]ServiceHierarchyUpdateRequest updateRequest)
         {
             var entity = await serviceHierachyRepository.Get(serialNo);
