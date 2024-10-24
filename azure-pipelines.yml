@@ -1,0 +1,47 @@
+# Docker
+# Build a Docker image
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- develop
+
+resources:
+- repo: self
+
+variables:
+  imageRepository: 'billing3api'
+  tag: '$(Build.BuildId)'
+  ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
+    dockerRegistryServiceConnection: 'BillingApiTresDev'
+    containerRegistry: 'billingapitresdev.azurecr.io'
+    azureSubscriptionId: 'MSFT_Azure_Sponsorship_Gold'
+    containerAppName: 'billling3-api-dev'
+    containerAppRg: 'RG-SDTeam2022-Dev'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: '$(Build.SourcesDirectory)/BillingApiTres/Dockerfile'
+        containerRegistry: $(dockerRegistryServiceConnection)
+        buildContext: $(Build.SourcesDirectory)
+        tags: |
+          $(tag)
+    - task: AzureContainerApps@1
+      inputs:
+        appSourcePath: '$(Build.SourcesDirectory)'
+        azureSubscription: $(azureSubscriptionId)
+        acrName: $(acrName)
+        containerAppName: $(containerAppName)
+        resourceGroup: $(containerAppRg)
+        imageToDeploy: '$(containerRegistry)/$(imageRepository):$(tag)'
