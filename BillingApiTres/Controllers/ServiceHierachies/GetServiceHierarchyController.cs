@@ -20,7 +20,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         IServiceHierarchyRepository serviceHierachyRepository,
         IMapper mapper,
         SalesClient salesClient,
-        ILogger<GetTenantController> logger) : ControllerBase
+        ILogger<GetServiceHierachyController> logger) : ControllerBase
     {
         private enum AccountType
         {

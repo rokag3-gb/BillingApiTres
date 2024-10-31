@@ -14,7 +14,7 @@ namespace BillingApiTres.Models.Clients
         /// </summary>
         public async Task<T> Get<T>(string uri, string token)
         {
-            var combinedUri = string.Join("/", new[] { httpClient.BaseAddress.ToString().TrimEnd('/') }.Concat(new[] { _resource, uri }.Select(s => s.Trim('/'))));
+            var combinedUri = string.Join("/", new[] { httpClient.BaseAddress?.ToString().TrimEnd('/') }.Concat(new[] { _resource, uri }.Select(s => s.Trim('/'))));
 
             using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(combinedUri));
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
