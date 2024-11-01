@@ -18,8 +18,8 @@ namespace BillingApi.Test
     {
         private const int _topRootAccountId = 0;
         private const int _acmeAccountId = 1;
-        private const int _parterAccountId1 = 2;
-        private const int _parterAccountId2 = 3;
+        private const int _partnerAccountId1 = 2;
+        private const int _partnerAccountId2 = 3;
         private const int _partner1CustomerAccountId1 = 4;
         private const int _partner1CustomerAccountId2 = 5;
         private const int _partner2CustomerAccountId1 = 6;
@@ -46,10 +46,10 @@ namespace BillingApi.Test
                 .GetChild(_acmeAccountId)
                 .Returns(x => Task.FromResult(CreateAcmeChilds()));
             serviceHierarchyRepositoryStub
-                .GetChild(_parterAccountId1)
+                .GetChild(_partnerAccountId1)
                 .Returns(x => Task.FromResult(CreatePartner1Child()));
             serviceHierarchyRepositoryStub
-                .GetChild(_parterAccountId2)
+                .GetChild(_partnerAccountId2)
                 .Returns(x => Task.FromResult(CreatePartner2Child()));
 
             var fakeLogger = new FakeLogger<GetServiceHierachyController>();
@@ -72,11 +72,11 @@ namespace BillingApi.Test
             Assert.NotNull(result?.Value);
             Assert.True(result.Value.Count == 6);
             Assert.Contains(result.Value, s => s.ContractorId == _topRootAccountId && s.ContracteeId == _acmeAccountId);
-            Assert.Contains(result.Value, s => s.ContractorId == _acmeAccountId && s.ContracteeId == _parterAccountId1);
-            Assert.Contains(result.Value, s => s.ContractorId == _acmeAccountId && s.ContracteeId == _parterAccountId2);
-            Assert.Contains(result.Value, s => s.ContractorId == _parterAccountId1 && s.ContracteeId == _partner1CustomerAccountId1);
-            Assert.Contains(result.Value, s => s.ContractorId == _parterAccountId1 && s.ContracteeId == _partner1CustomerAccountId2);
-            Assert.Contains(result.Value, s => s.ContractorId == _parterAccountId2 && s.ContracteeId == _partner2CustomerAccountId1);
+            Assert.Contains(result.Value, s => s.ContractorId == _acmeAccountId && s.ContracteeId == _partnerAccountId1);
+            Assert.Contains(result.Value, s => s.ContractorId == _acmeAccountId && s.ContracteeId == _partnerAccountId2);
+            Assert.Contains(result.Value, s => s.ContractorId == _partnerAccountId1 && s.ContracteeId == _partner1CustomerAccountId1);
+            Assert.Contains(result.Value, s => s.ContractorId == _partnerAccountId1 && s.ContracteeId == _partner1CustomerAccountId2);
+            Assert.Contains(result.Value, s => s.ContractorId == _partnerAccountId2 && s.ContracteeId == _partner2CustomerAccountId1);
         }
 
         /// <summary>
@@ -88,10 +88,10 @@ namespace BillingApi.Test
             //arrange
             var serviceHierarchyRepositoryStub = Substitute.For<IServiceHierarchyRepository>();
             serviceHierarchyRepositoryStub
-                .GetParent(_parterAccountId1)
-                .Returns(x => Task.FromResult(new ServiceHierarchy { AccountId = _parterAccountId1, ParentAccId = _acmeAccountId }));
+                .GetParent(_partnerAccountId1)
+                .Returns(x => Task.FromResult(new ServiceHierarchy { AccountId = _partnerAccountId1, ParentAccId = _acmeAccountId }));
             serviceHierarchyRepositoryStub
-                .GetChild(_parterAccountId1)
+                .GetChild(_partnerAccountId1)
                 .Returns(x => Task.FromResult(CreatePartner1Child()));
 
             var fakeLogger = new FakeLogger<GetServiceHierachyController>();
@@ -108,14 +108,14 @@ namespace BillingApi.Test
             sut.ControllerContext.HttpContext.Request.Headers["Authorization"] = _bearerToken;
 
             //act
-            var partnerAccount1Result = await sut.GetList(_parterAccountId1);
+            var partnerAccount1Result = await sut.GetList(_partnerAccountId1);
 
             //assert
             Assert.NotNull(partnerAccount1Result.Value);
             Assert.True(partnerAccount1Result.Value.Count == 4);
-            Assert.Contains(partnerAccount1Result.Value, s => s.ContractorId == _acmeAccountId && s.ContracteeId == _parterAccountId1);
-            Assert.Contains(partnerAccount1Result.Value, s => s.ContractorId == _parterAccountId1 && s.ContracteeId == _partner1CustomerAccountId1);
-            Assert.Contains(partnerAccount1Result.Value, s => s.ContractorId == _parterAccountId1 && s.ContracteeId == _partner1CustomerAccountId2);
+            Assert.Contains(partnerAccount1Result.Value, s => s.ContractorId == _acmeAccountId && s.ContracteeId == _partnerAccountId1);
+            Assert.Contains(partnerAccount1Result.Value, s => s.ContractorId == _partnerAccountId1 && s.ContracteeId == _partner1CustomerAccountId1);
+            Assert.Contains(partnerAccount1Result.Value, s => s.ContractorId == _partnerAccountId1 && s.ContracteeId == _partner1CustomerAccountId2);
         }
 
         /// <summary>
@@ -128,9 +128,9 @@ namespace BillingApi.Test
             var serviceHierarchyRepositoryStub = Substitute.For<IServiceHierarchyRepository>();
             serviceHierarchyRepositoryStub
                 .GetParent(_partner1CustomerAccountId1)
-                .Returns(x => Task.FromResult(new ServiceHierarchy { AccountId = _partner1CustomerAccountId1, ParentAccId = _parterAccountId1 }));
+                .Returns(x => Task.FromResult(new ServiceHierarchy { AccountId = _partner1CustomerAccountId1, ParentAccId = _partnerAccountId1 }));
             serviceHierarchyRepositoryStub
-                .GetChild(_parterAccountId1)
+                .GetChild(_partnerAccountId1)
                 .Returns(x => Task.FromResult(CreatePartner1Child()));
 
             var fakeLogger = new FakeLogger<GetServiceHierachyController>();
@@ -152,7 +152,7 @@ namespace BillingApi.Test
             //assert
             Assert.NotNull(partner1CustomerAccount1Result.Value);
             Assert.True(partner1CustomerAccount1Result.Value.Count == 2);
-            Assert.Contains(partner1CustomerAccount1Result.Value, s => s.ContractorId == _parterAccountId1 && s.ContracteeId == _partner1CustomerAccountId1);
+            Assert.Contains(partner1CustomerAccount1Result.Value, s => s.ContractorId == _partnerAccountId1 && s.ContracteeId == _partner1CustomerAccountId1);
         }
 
         /// <summary>
@@ -188,12 +188,12 @@ namespace BillingApi.Test
             {
                 new ServiceHierarchy
                 {
-                    AccountId = _parterAccountId1,
+                    AccountId = _partnerAccountId1,
                     ParentAccId = _acmeAccountId
                 },
                 new ServiceHierarchy
                 {
-                    AccountId = _parterAccountId2,
+                    AccountId = _partnerAccountId2,
                     ParentAccId = _acmeAccountId
                 }
             };
@@ -206,12 +206,12 @@ namespace BillingApi.Test
                 new ServiceHierarchy
                 {
                     AccountId = _partner1CustomerAccountId1,
-                    ParentAccId = _parterAccountId1
+                    ParentAccId = _partnerAccountId1
                 },
                 new ServiceHierarchy
                 {
                     AccountId = _partner1CustomerAccountId2,
-                    ParentAccId = _parterAccountId1
+                    ParentAccId = _partnerAccountId1
                 }
             };
         }
@@ -223,7 +223,7 @@ namespace BillingApi.Test
                 new ServiceHierarchy
                 {
                     AccountId = _partner2CustomerAccountId1,
-                    ParentAccId = _parterAccountId2
+                    ParentAccId = _partnerAccountId2
                 }
             };
         }
