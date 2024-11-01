@@ -1,11 +1,8 @@
 ﻿using AutoMapper;
-using Azure.Core;
 using Billing.Data.Interfaces;
-using BillingApiTres.Controllers.Tenants;
 using BillingApiTres.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualBasic;
 
 namespace BillingApiTres.Controllers.ServiceHierachies
 {
@@ -14,7 +11,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
     public class UpdateServiceHierarchyController(
         IServiceHierarchyRepository serviceHierachyRepository,
         IMapper mapper,
-        ILogger<GetTenantController> logger) : ControllerBase
+        ILogger<UpdateServiceHierarchyController> logger) : ControllerBase
     {
         [HttpPut("/service-organizations/{serialNo}")]
         public async Task<ActionResult<long>> UpdateServiceHierarchy(

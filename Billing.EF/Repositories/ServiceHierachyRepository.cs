@@ -34,7 +34,7 @@ namespace Billing.EF.Repositories
             return await iamContext.ServiceHierarchies
                 .Where(s => s.ParentAccId == parentAccountId)
                 .Include(s => s.Tenant)
-                .AsNoTracking()
+                //.AsNoTracking()
                 .ToListAsync();
         }
 
@@ -42,7 +42,7 @@ namespace Billing.EF.Repositories
         {
             return await iamContext.ServiceHierarchies
                 .Include(s => s.Tenant)
-                .AsNoTracking()
+                //.AsNoTracking()
                 .FirstOrDefaultAsync(s => s.Sno == serialNo);
         }
 

@@ -47,7 +47,7 @@ namespace BillingApiTres.Models.MapperProfiles
                 return "";
 
             var accounts = accountsObj as List<SalesAccount>;
-            return accounts?.Where(a => a.AccountId == s.AccountId).FirstOrDefault()?.AccountName ?? "";
+            return accounts?.Where(a => a?.AccountId == s.AccountId).FirstOrDefault()?.AccountName ?? "";
         }
     }
 }

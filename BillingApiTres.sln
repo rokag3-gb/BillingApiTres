@@ -9,9 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Billing.Data", "Billing.Dat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Billing.EF", "Billing.EF\Billing.EF.csproj", "{05E26D09-69DF-4091-869D-DFC1E9E84F83}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BillingApi.Test", "BillingApi.Test\BillingApi.Test.csproj", "{9EA438E5-6872-42A6-AEB3-2BD3D67B5770}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillingApi.Test", "BillingApi.Test\BillingApi.Test.csproj", "{9EA438E5-6872-42A6-AEB3-2BD3D67B5770}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BillingApi.Integration.Test", "BillingApi.Integration.Test\BillingApi.Integration.Test.csproj", "{BB2D5F00-3722-407A-B128-1AB3B99C33AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillingApi.Integration.Test", "BillingApi.Integration.Test\BillingApi.Integration.Test.csproj", "{BB2D5F00-3722-407A-B128-1AB3B99C33AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

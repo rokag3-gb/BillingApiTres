@@ -1,23 +1,20 @@
-﻿using AutoMapper;
-using Billing.Data.Interfaces;
+﻿using Billing.Data.Interfaces;
 using Billing.Data.Models;
+using BillingApi.Test.Fixtures;
 using BillingApiTres.Controllers.ServiceHierachies;
 using BillingApiTres.Models.Clients;
-using BillingApiTres.Models.MapperProfiles;
-using Microsoft.VisualStudio.TestPlatform.Common.Utilities;
-using NSubstitute;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Testing;
-using System.Net;
 using Microsoft.AspNetCore.Http;
-using RichardSzalay.MockHttp;
-using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Testing;
+using NSubstitute;
+using RichardSzalay.MockHttp;
+using System.Net;
+using System.Net.Http.Json;
 
 
 namespace BillingApi.Test
 {
-    public class ServiceHierachyTest
+    public class ServiceHierachyTest(AutoMapperFixture MapperFixture) : IClassFixture<AutoMapperFixture>
     {
         private const int _topRootAccountId = 0;
         private const int _acmeAccountId = 1;
@@ -55,7 +52,6 @@ namespace BillingApi.Test
                 .GetChild(_parterAccountId2)
                 .Returns(x => Task.FromResult(CreatePartner2Child()));
 
-            var mapper = CreateMapper();
             var fakeLogger = new FakeLogger<GetServiceHierachyController>();
             var salesFakeLogger = new FakeLogger<SalesClient>();
 
@@ -65,7 +61,7 @@ namespace BillingApi.Test
             var httpClient = CreateHttpClientStub(handler);
             var salesClient = Substitute.For<SalesClient>(httpClient, salesFakeLogger);
 
-            var sut = new GetServiceHierachyController(serviceHierarchyRepositoryStub, mapper, salesClient, fakeLogger);
+            var sut = new GetServiceHierachyController(serviceHierarchyRepositoryStub, MapperFixture.Mapper, salesClient, fakeLogger);
             sut.ControllerContext.HttpContext = new DefaultHttpContext();
             sut.ControllerContext.HttpContext.Request.Headers["Authorization"] = _bearerToken;
 
@@ -98,7 +94,6 @@ namespace BillingApi.Test
                 .GetChild(_parterAccountId1)
                 .Returns(x => Task.FromResult(CreatePartner1Child()));
 
-            var mapper = CreateMapper();
             var fakeLogger = new FakeLogger<GetServiceHierachyController>();
             var salesFakeLogger = new FakeLogger<SalesClient>();
 
@@ -108,7 +103,7 @@ namespace BillingApi.Test
             var httpClient = CreateHttpClientStub(handler);
             var salesClient = Substitute.For<SalesClient>(httpClient, salesFakeLogger);
 
-            var sut = new GetServiceHierachyController(serviceHierarchyRepositoryStub, mapper, salesClient, fakeLogger);
+            var sut = new GetServiceHierachyController(serviceHierarchyRepositoryStub, MapperFixture.Mapper, salesClient, fakeLogger);
             sut.ControllerContext.HttpContext = new DefaultHttpContext();
             sut.ControllerContext.HttpContext.Request.Headers["Authorization"] = _bearerToken;
 
@@ -138,7 +133,6 @@ namespace BillingApi.Test
                 .GetChild(_parterAccountId1)
                 .Returns(x => Task.FromResult(CreatePartner1Child()));
 
-            var mapper = CreateMapper();
             var fakeLogger = new FakeLogger<GetServiceHierachyController>();
             var salesFakeLogger = new FakeLogger<SalesClient>();
 
@@ -148,7 +142,7 @@ namespace BillingApi.Test
             var httpClient = CreateHttpClientStub(handler);
             var salesClient = Substitute.For<SalesClient>(httpClient, salesFakeLogger);
 
-            var sut = new GetServiceHierachyController(serviceHierarchyRepositoryStub, mapper, salesClient, fakeLogger);
+            var sut = new GetServiceHierachyController(serviceHierarchyRepositoryStub, MapperFixture.Mapper, salesClient, fakeLogger);
             sut.ControllerContext.HttpContext = new DefaultHttpContext();
             sut.ControllerContext.HttpContext.Request.Headers["Authorization"] = _bearerToken;
 
@@ -170,7 +164,6 @@ namespace BillingApi.Test
             //arrange
             var serviceHierarchyRepositoryStub = Substitute.For<IServiceHierarchyRepository>();
 
-            var mapper = CreateMapper();
             var fakeLogger = new FakeLogger<GetServiceHierachyController>();
             var salesFakeLogger = new FakeLogger<SalesClient>();
 
@@ -180,7 +173,7 @@ namespace BillingApi.Test
             var httpClient = CreateHttpClientStub(handler);
             var salesClient = Substitute.For<SalesClient>(httpClient, salesFakeLogger);
 
-            var sut = new GetServiceHierachyController(serviceHierarchyRepositoryStub, mapper, salesClient, fakeLogger);
+            var sut = new GetServiceHierachyController(serviceHierarchyRepositoryStub, MapperFixture.Mapper, salesClient, fakeLogger);
 
             //act
             var result = await sut.GetList(_notExistAccountId);
@@ -188,7 +181,6 @@ namespace BillingApi.Test
             //assert
             Assert.IsAssignableFrom<NoContentResult>(result.Result);
         }
-        
 
         private List<ServiceHierarchy> CreateAcmeChilds()
         {
@@ -234,13 +226,6 @@ namespace BillingApi.Test
                     ParentAccId = _parterAccountId2
                 }
             };
-        }
-
-        private Mapper CreateMapper()
-        {
-            var profile = new ServiceHierarchyProfile();
-            var configuration = new MapperConfiguration(config => config.AddProfile(profile));
-            return new Mapper(configuration);
         }
 
         private HttpClient CreateHttpClientStub(MockHttpMessageHandler handler)
