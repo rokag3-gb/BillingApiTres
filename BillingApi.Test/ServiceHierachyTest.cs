@@ -31,7 +31,7 @@ namespace BillingApi.Test
         /// acme의 서비스 계층 구조를 조회할 경우 파트너와 고객을 모두 포함한 데이터를 반환하는지 확인합니다.
         /// </summary>
         [Fact]
-        public async Task When_Acme_Expect_HasPartersAndCustomers()
+        public async Task When_Acme_Expect_HasPartnersAndCustomers()
         {
             //arrange
             var serviceHierarchyRepositoryStub = Substitute.For<IServiceHierarchyRepository>();
