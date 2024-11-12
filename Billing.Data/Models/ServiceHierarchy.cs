@@ -37,6 +37,9 @@ public partial class ServiceHierarchy
     [Unicode(false)]
     public string? SaverId { get; set; }
 
+    [InverseProperty("SnoNavigation")]
+    public virtual ICollection<ServiceHierarchyConfig> ServiceHierarchyConfigs { get; set; } = new List<ServiceHierarchyConfig>();
+
     [ForeignKey("TenantId")]
     [InverseProperty("ServiceHierarchies")]
     public virtual Tenant Tenant { get; set; } = null!;

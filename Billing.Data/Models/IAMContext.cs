@@ -15,6 +15,8 @@ public partial class IAMContext : DbContext
 
     public virtual DbSet<ServiceHierarchy> ServiceHierarchies { get; set; }
 
+    public virtual DbSet<ServiceHierarchyConfig> ServiceHierarchyConfigs { get; set; }
+
     public virtual DbSet<Tenant> Tenants { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -25,7 +27,7 @@ public partial class IAMContext : DbContext
                 .HasName("PK_ServiceHierarchy_Sno")
                 .IsClustered(false);
 
-            entity.HasIndex(e => new { e.TenantId, e.ParentAccId, e.AccountId }, "IDX_unique_ServiceHierarchy_TenantId_ParentAccId_AccountId")
+            entity.HasIndex(e => new { e.TenantId, e.ParentAccId, e.AccountId, e.IsActive }, "Idx_unique_ServiceHierarchy_TenantId_ParentAccId_AccountId_IsActive")
                 .IsUnique()
                 .IsClustered();
 
@@ -36,6 +38,19 @@ public partial class IAMContext : DbContext
                 .HasForeignKey(d => d.TenantId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ServiceHierarchy_TenantId");
+        });
+
+        modelBuilder.Entity<ServiceHierarchyConfig>(entity =>
+        {
+            entity.HasKey(e => e.ConfigId).IsClustered(false);
+
+            entity.HasIndex(e => new { e.Sno, e.ConfigCode }, "Idx_unique_ServiceHierarchy_Config_Sno_ConfigCode_ConfigValue")
+                .IsUnique()
+                .IsClustered();
+
+            entity.HasOne(d => d.SnoNavigation).WithMany(p => p.ServiceHierarchyConfigs)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ServiceHierarchy_Config_Sno");
         });
 
         modelBuilder.Entity<Tenant>(entity =>
