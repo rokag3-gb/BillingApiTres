@@ -32,7 +32,7 @@ namespace BillingApiTres
             builder.Services.AddHttpClient<SalesClient>(c => c.BaseAddress = new Uri(builder.Configuration["sales_url"]!));
             #endregion
 
-            builder.Services.AddMapperBillingTypes();
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>

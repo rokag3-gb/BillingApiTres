@@ -19,8 +19,8 @@ namespace Billing.EF.Repositories
             try
             {
                 return await iamContext.ServiceHierarchies
-                    .Include(s => s.Tenant)                
-                    .AsNoTracking()                    
+                    .Include(s => s.Tenant)
+                    .Include(s => s.ServiceHierarchyConfigs)
                     .SingleOrDefaultAsync(s => s.AccountId == accountId);
             }
             catch (InvalidOperationException ex)
@@ -34,7 +34,7 @@ namespace Billing.EF.Repositories
             return await iamContext.ServiceHierarchies
                 .Where(s => s.ParentAccId == parentAccountId)
                 .Include(s => s.Tenant)
-                //.AsNoTracking()
+                .Include(s => s.ServiceHierarchyConfigs)
                 .ToListAsync();
         }
 
@@ -42,7 +42,7 @@ namespace Billing.EF.Repositories
         {
             return await iamContext.ServiceHierarchies
                 .Include(s => s.Tenant)
-                //.AsNoTracking()
+                .Include(s => s.ServiceHierarchyConfigs)
                 .FirstOrDefaultAsync(s => s.Sno == serialNo);
         }
 

@@ -25,6 +25,7 @@ namespace BillingApiTres.Models.Dto
         public DateTime ContractDate { get; set; }
         [SourceMember(nameof(ServiceHierarchy.EndDate))]
         public DateTime ExpireDate { get; set; }
-
+        [SourceMember(nameof(ServiceHierarchy.ServiceHierarchyConfigs))]
+        public ICollection<ServiceHierarchyConfigResponse>? Configs { get; set; }
     }
 }
