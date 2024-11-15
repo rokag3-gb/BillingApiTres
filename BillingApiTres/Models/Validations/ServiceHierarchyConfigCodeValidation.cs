@@ -4,6 +4,8 @@ namespace BillingApiTres.Models.Validations
 {
     public class ServiceHierarchyConfigCodeValidation : ValidationAttribute
     {
+        string[] validCodes = { "MspChargeRate", "WorksContractDiscountRate", "PcpContractDiscountRate" };
+
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
             if (value == null)
@@ -12,10 +14,10 @@ namespace BillingApiTres.Models.Validations
             if (value is not string)
                 return new ValidationResult("문자열 형식만 가능합니다.", [validationContext.MemberName!]);
 
-            if (value.ToString() == "MspChargeRate" || value.ToString() == "WorksContractDiscountRate" || value.ToString() == "PcpContractDiscountRate")
+            if (validCodes.Contains(value))
                 return ValidationResult.Success;
             else
-                return new ValidationResult("사용할 수 없는 값입니다.", [validationContext.MemberName!]);
+                return new ValidationResult($"{string.Join(", ", validCodes)}만 사용 가능합니다. 입력값 : {value}", [validationContext.MemberName!]);
         }
     }
 }
