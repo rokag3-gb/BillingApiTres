@@ -48,9 +48,7 @@ public partial class IAMContext : DbContext
                 .IsUnique()
                 .IsClustered();
 
-            entity.HasOne(d => d.SnoNavigation).WithMany(p => p.ServiceHierarchyConfigs)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ServiceHierarchy_Config_Sno");
+            entity.HasOne(d => d.SnoNavigation).WithMany(p => p.ServiceHierarchyConfigs).HasConstraintName("FK_ServiceHierarchy_Config_Sno");
         });
 
         modelBuilder.Entity<Tenant>(entity =>
