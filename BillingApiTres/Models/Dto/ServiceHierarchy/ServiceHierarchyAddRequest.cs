@@ -35,5 +35,8 @@ namespace BillingApiTres.Models.Dto
         [Iso8601UtcValidation]
         [SourceMember(nameof(ServiceHierarchy.EndDate))]
         public DateTime ExpireDate { get; set; }
+
+        [SourceMember(nameof(ServiceHierarchy.ServiceHierarchyConfigs))]
+        public ICollection<ServiceHierarchyConfigAddRequest>? Configs { get; set; }
     }
 }

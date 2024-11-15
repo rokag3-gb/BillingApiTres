@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Billing.Data.Models;
 using BillingApiTres.Models.Dto;
 
 namespace BillingApiTres.Models.MapperProfiles
@@ -7,7 +8,8 @@ namespace BillingApiTres.Models.MapperProfiles
     {
         public ServiceHierarchyConfigProfile()
         {
-            CreateMap<ServiceHierarchyConfigProfile, ServiceHierarchyConfigResponse>();
+            CreateMap<ServiceHierarchyConfig, ServiceHierarchyConfigResponse>();
+            CreateMap<ServiceHierarchyConfigAddRequest, ServiceHierarchyConfig>();
         }
     }
 }
