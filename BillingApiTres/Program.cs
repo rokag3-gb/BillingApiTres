@@ -88,6 +88,7 @@ namespace BillingApiTres
             builder.Services.AddDbContext<IAMContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration["IamDbConnection"]);
+                options.EnableSensitiveDataLogging();
             });
 
 

@@ -16,20 +16,59 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         [HttpPut("/service-organizations/{serialNo}")]
         public async Task<ActionResult<long>> UpdateServiceHierarchy(
             long serialNo,
-            [FromBody]ServiceHierarchyUpdateRequest updateRequest)
+            [FromBody] ServiceHierarchyUpdateRequest updateRequest)
         {
             var entity = await serviceHierachyRepository.Get(serialNo);
 
             if (entity == null)
                 return Conflict($"대상이 존재하지 않습니다 : {updateRequest}");
-            
+
             entity.IsActive = updateRequest.IsActive ?? entity.IsActive;
             entity.StartDate = updateRequest.ContractDate?.ToUniversalTime() ?? entity.StartDate;
             entity.EndDate = updateRequest.ExpireDate?.ToUniversalTime() ?? entity.EndDate;
             entity.SavedAt = DateTime.UtcNow;
+            foreach (var updateConfig in updateRequest.Configs.OrderBy(c => c.ConfigId) ?? Enumerable.Empty<ServiceHierarchyConfigUpdateRequest>())
+            {
+                if (updateConfig.ConfigId is null || updateConfig.ConfigId == 0)
+                {
+                    entity.ServiceHierarchyConfigs.Add(
+                        new Billing.Data.Models.ServiceHierarchyConfig
+                        {
+                            Sno = entity.Sno,
+                            ConfigCode = updateConfig.Code,
+                            ConfigValue = updateConfig.Value
+                        });
+
+                    continue;
+                }
+
+                var config = entity.ServiceHierarchyConfigs.FirstOrDefault(c => c.ConfigId == updateConfig.ConfigId);
+
+                if (config is null)
+                {
+                    var msg = $"존재하지 않는 ServiceHierarchyConfig 레코드를 수정하려고 했습니다. config id : {updateConfig.ConfigId}";
+                    logger.LogError(msg);
+#if DEBUG
+                    return BadRequest(msg);
+#else
+                    return BadRequest();
+#endif
+                }
+
+                config.ConfigValue = updateConfig.Value;
+            }
+
+            var codeGroup = entity.ServiceHierarchyConfigs.GroupBy(c => c.ConfigCode);
+            if (codeGroup.Any(g => g.Count() > 1))
+            {
+                string msg = $"config code를 중복하여 등록할 수 없습니다. code : {string.Join(", ", codeGroup.Where(g => g.Count() > 1).SelectMany(g => g.Select(c => c.ConfigCode)))}";
+                    
+                logger.LogError(msg);
+                return BadRequest(msg);
+            }
 
             await serviceHierachyRepository.Update(entity);
-            
+
             return Ok(serialNo);
         }
     }

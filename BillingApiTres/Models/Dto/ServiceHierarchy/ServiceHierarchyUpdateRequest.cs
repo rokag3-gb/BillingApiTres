@@ -10,10 +10,9 @@ namespace BillingApiTres.Models.Dto
     public record ServiceHierarchyUpdateRequest : IValidatableObject
     {
         public bool? IsActive { get; set; }
-        [Iso8601UtcValidation()]
         public DateTime? ContractDate { get; set; }
-        [Iso8601UtcValidation()]
         public DateTime? ExpireDate { get; set; }
+        public ICollection<ServiceHierarchyConfigUpdateRequest>? Configs { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

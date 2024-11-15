@@ -49,8 +49,8 @@ namespace Billing.EF.Repositories
         public async Task Update(ServiceHierarchy entity)
         {
             using var trans = await iamContext.Database.BeginTransactionAsync();
-            iamContext.ServiceHierarchies.Update(entity);
 
+            iamContext.ServiceHierarchies.Update(entity);
             await iamContext.SaveChangesAsync();
 
             await trans.CommitAsync();
