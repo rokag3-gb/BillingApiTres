@@ -9,17 +9,14 @@ using Microsoft.EntityFrameworkCore;
 namespace Billing.Data.Models.Bill;
 
 [Table("Bill")]
-[Index("BillMonth", Name = "idx_Bill_BillMonth")]
+[Index("BillDate", Name = "idx_Bill_BillDate")]
 public partial class Bill
 {
     [Key]
     public long BillId { get; set; }
 
-    public DateOnly BillDate { get; set; }
-
-    [StringLength(6)]
-    [Unicode(false)]
-    public string? BillMonth { get; set; }
+    [Column(TypeName = "datetime")]
+    public DateTime BillDate { get; set; }
 
     public long SellerAccountId { get; set; }
 
@@ -37,15 +34,13 @@ public partial class Bill
     [Unicode(false)]
     public string StatusCode { get; set; } = null!;
 
+    public long? ConsumptionAccountId { get; set; }
+
     [Column(TypeName = "datetime")]
     public DateTime? ConsumptionStartDate { get; set; }
 
     [Column(TypeName = "datetime")]
     public DateTime? ConsumptionEndDate { get; set; }
-
-    [StringLength(7)]
-    [Unicode(false)]
-    public string CurrencyCode { get; set; } = null!;
 
     [Column(TypeName = "money")]
     public decimal ConsumptionAmount { get; set; }
@@ -64,6 +59,10 @@ public partial class Bill
 
     [Column(TypeName = "money")]
     public decimal? TotalAmount { get; set; }
+
+    [StringLength(7)]
+    [Unicode(false)]
+    public string CurrencyCode { get; set; } = null!;
 
     [StringLength(1000)]
     public string? Remark { get; set; }

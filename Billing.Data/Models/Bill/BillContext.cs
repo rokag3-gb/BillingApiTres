@@ -21,7 +21,6 @@ public partial class BillContext : DbContext
         {
             entity.HasKey(e => e.BillId).HasName("PK_Bill_BillId");
 
-            entity.Property(e => e.BillMonth).HasComputedColumnSql("(CONVERT([varchar](6),[BillDate],(112)))", true);
             entity.Property(e => e.SavedAt).HasDefaultValueSql("(dateadd(hour,(-9),getdate()))");
             entity.Property(e => e.TotalAmount).HasComputedColumnSql("(CONVERT([money],[Amount]+[Tax]))", true);
         });
