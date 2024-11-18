@@ -8,8 +8,6 @@ namespace BillingApiTres.Models.MapperProfiles
     {
         public ServiceHierarchyConfigProfile()
         {
-            CreateMap<ServiceHierarchyConfig, ServiceHierarchyConfigResponse>();
-            CreateMap<ServiceHierarchyConfigAddRequest, ServiceHierarchyConfig>();
         }
     }
 }
