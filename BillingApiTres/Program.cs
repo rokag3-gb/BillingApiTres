@@ -26,6 +26,7 @@ namespace BillingApiTres
             #region regist repositories
             builder.Services.AddScoped<ITenantRepository, TenantRepository>();
             builder.Services.AddScoped<IServiceHierarchyRepository, ServiceHierarchyRepository>();
+            builder.Services.AddScoped<IAccountKeyRepository, AccountKeyRepository>();
             #endregion
 
             #region regist Http Client
