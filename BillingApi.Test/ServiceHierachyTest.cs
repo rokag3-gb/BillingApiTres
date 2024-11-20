@@ -53,13 +53,13 @@ namespace BillingApi.Test
                 .Returns(x => Task.FromResult(CreatePartner2Child()));
 
             var fakeLogger = new FakeLogger<GetServiceHierachyController>();
-            var salesFakeLogger = new FakeLogger<SalesClient>();
+            var salesFakeLogger = new FakeLogger<AcmeGwClient>();
 
             MockHttpMessageHandler handler = new();
             handler.Expect(HttpMethod.Get, $"{_baseAddress}/sales/account?limit=99999")
                    .Respond(HttpStatusCode.OK, JsonContent.Create(""));
             var httpClient = CreateHttpClientStub(handler);
-            var salesClient = Substitute.For<SalesClient>(httpClient, salesFakeLogger);
+            var salesClient = Substitute.For<AcmeGwClient>(httpClient, salesFakeLogger);
 
             var sut = new GetServiceHierachyController(serviceHierarchyRepositoryStub, MapperFixture.Mapper, salesClient, fakeLogger);
             sut.ControllerContext.HttpContext = new DefaultHttpContext();
@@ -95,13 +95,13 @@ namespace BillingApi.Test
                 .Returns(x => Task.FromResult(CreatePartner1Child()));
 
             var fakeLogger = new FakeLogger<GetServiceHierachyController>();
-            var salesFakeLogger = new FakeLogger<SalesClient>();
+            var salesFakeLogger = new FakeLogger<AcmeGwClient>();
 
             MockHttpMessageHandler handler = new();
             handler.Expect(HttpMethod.Get, $"{_baseAddress}/sales/account?limit=99999")
                    .Respond(HttpStatusCode.OK, JsonContent.Create(""));
             var httpClient = CreateHttpClientStub(handler);
-            var salesClient = Substitute.For<SalesClient>(httpClient, salesFakeLogger);
+            var salesClient = Substitute.For<AcmeGwClient>(httpClient, salesFakeLogger);
 
             var sut = new GetServiceHierachyController(serviceHierarchyRepositoryStub, MapperFixture.Mapper, salesClient, fakeLogger);
             sut.ControllerContext.HttpContext = new DefaultHttpContext();
@@ -134,13 +134,13 @@ namespace BillingApi.Test
                 .Returns(x => Task.FromResult(CreatePartner1Child()));
 
             var fakeLogger = new FakeLogger<GetServiceHierachyController>();
-            var salesFakeLogger = new FakeLogger<SalesClient>();
+            var salesFakeLogger = new FakeLogger<AcmeGwClient>();
 
             MockHttpMessageHandler handler = new();
             handler.Expect(HttpMethod.Get, $"{_baseAddress}/sales/account?limit=99999")
                    .Respond(HttpStatusCode.OK, JsonContent.Create(""));
             var httpClient = CreateHttpClientStub(handler);
-            var salesClient = Substitute.For<SalesClient>(httpClient, salesFakeLogger);
+            var salesClient = Substitute.For<AcmeGwClient>(httpClient, salesFakeLogger);
 
             var sut = new GetServiceHierachyController(serviceHierarchyRepositoryStub, MapperFixture.Mapper, salesClient, fakeLogger);
             sut.ControllerContext.HttpContext = new DefaultHttpContext();
@@ -165,13 +165,13 @@ namespace BillingApi.Test
             var serviceHierarchyRepositoryStub = Substitute.For<IServiceHierarchyRepository>();
 
             var fakeLogger = new FakeLogger<GetServiceHierachyController>();
-            var salesFakeLogger = new FakeLogger<SalesClient>();
+            var salesFakeLogger = new FakeLogger<AcmeGwClient>();
 
             MockHttpMessageHandler handler = new();
             handler.Expect(HttpMethod.Get, $"{_baseAddress}/sales/account?limit=99999")
                    .Respond(HttpStatusCode.OK, JsonContent.Create(""));
             var httpClient = CreateHttpClientStub(handler);
-            var salesClient = Substitute.For<SalesClient>(httpClient, salesFakeLogger);
+            var salesClient = Substitute.For<AcmeGwClient>(httpClient, salesFakeLogger);
 
             var sut = new GetServiceHierachyController(serviceHierarchyRepositoryStub, MapperFixture.Mapper, salesClient, fakeLogger);
 

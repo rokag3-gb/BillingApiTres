@@ -44,7 +44,7 @@ namespace BillingApi.Integration.Test
             var repository = new ServiceHierarchyRepository(context);
 
             var fakeLogger = new FakeLogger<GetServiceHierachyController>();
-            var salesFakeLogger = new FakeLogger<SalesClient>();
+            var salesFakeLogger = new FakeLogger<AcmeGwClient>();
 
             //통합 테스트이므로 httpclient도 테스트 대역이 아닌 실제 httpclient를 써야 하나?
             MockHttpMessageHandler handler = new();
@@ -52,7 +52,7 @@ namespace BillingApi.Integration.Test
                    .Respond(HttpStatusCode.OK, JsonContent.Create(""));
             var httpClient = new HttpClient(handler);
             httpClient.BaseAddress = new Uri(_baseAddress);
-            var salesClient = Substitute.For<SalesClient>(httpClient, salesFakeLogger);
+            var salesClient = Substitute.For<AcmeGwClient>(httpClient, salesFakeLogger);
 
             var sut = new GetServiceHierachyController(repository, MapperFixture.Mapper, salesClient, fakeLogger);
             //인증 서비스도 통합 테스트에 포함될 수 있다. fixture 동작 확인을 위한 예제용 코드라서 패스

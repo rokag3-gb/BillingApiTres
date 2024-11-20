@@ -19,7 +19,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
     public class GetServiceHierachyController(
         IServiceHierarchyRepository serviceHierachyRepository,
         IMapper mapper,
-        SalesClient salesClient,
+        AcmeGwClient gwClient,
         ILogger<GetServiceHierachyController> logger) : ControllerBase
     {
         private enum AccountType
@@ -41,8 +41,8 @@ namespace BillingApiTres.Controllers.ServiceHierachies
 
             SalesAccount? parentAccount = default;
             if (response.ParentAccId > 0)
-                parentAccount = await salesClient.Get<SalesAccount>($"account/{response.ParentAccId}", token?.RawData!);
-            var account = await salesClient.Get<SalesAccount>($"account/{response.AccountId}", token?.RawData!);
+                parentAccount = await gwClient.Get<SalesAccount>($"sales/account/{response.ParentAccId}", token?.RawData!);
+            var account = await gwClient.Get<SalesAccount>($"sales/account/{response.AccountId}", token?.RawData!);
             var list = new List<SalesAccount> { parentAccount ?? new(), account };
 
             return mapper.Map<ServiceHierarchyResponse>(response, options =>
@@ -62,7 +62,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             }
 
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
-            var accounts = await salesClient.Get<List<SalesAccount>>("account?limit=99999", token?.RawData!);
+            var accounts = await gwClient.Get<List<SalesAccount>>("account?limit=99999", token?.RawData!);
             
             AccountType accountType = AccountType.None;
             if (parent.ParentAccId == 0)

@@ -31,5 +31,14 @@ namespace Billing.EF.Repositories
 
             return list;
         }
+
+        public async Task<List<AccountKey>> GetKeyList(List<long> accountIds)
+        {
+            var list = await saleContext.AccountKeys
+                .Where(a => accountIds.Contains(a.AccountId))
+                .ToListAsync();
+
+            return list;
+        }
     }
 }

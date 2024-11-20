@@ -15,7 +15,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
     [Authorize]
     public class AddServiceHierarchyController(
         IServiceHierarchyRepository serviceHierarchyRepository,
-        SalesClient salesClient,
+        AcmeGwClient gwClient,
         IMapper mapper,
         ILogger<AddServiceHierarchyController> logger) : ControllerBase
     {
@@ -31,7 +31,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             entity.SavedAt = DateTime.UtcNow;
             entity.SaverId = token?.Subject;
 
-            var accounts = await salesClient.Get<List<SalesAccount>>("account?limit=99999", token?.RawData!);
+            var accounts = await gwClient.Get<List<SalesAccount>>("sales/account?limit=99999", token?.RawData!);
 
             var addedEntity = await serviceHierarchyRepository.Add(entity);
             var returnDto = mapper.Map<ServiceHierarchyResponse>(addedEntity, options =>
