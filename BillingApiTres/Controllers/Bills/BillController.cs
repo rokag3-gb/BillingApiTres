@@ -35,11 +35,10 @@ namespace BillingApiTres.Controllers.Bills
 
             //get status codes
             var codes = new List<SaleCode>();
-            var requestCodes = bills.Select(b => b.StatusCode).Distinct();
+            var requestCodeKinds = bills.Select(b => b.StatusCode.Split("-").First()).Distinct();
 
-            foreach (var code in requestCodes)
+            foreach (var kind in requestCodeKinds)
             {
-                var kind = code.Split("-").First();
                 var ret = await gwClient.Get<List<SaleCode>>($"sales/code/{kind}/childs", token?.RawData!);
                 codes.AddRange(ret);
             }
