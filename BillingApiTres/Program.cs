@@ -38,7 +38,7 @@ namespace BillingApiTres
             #endregion
 
             builder.Services.AddTransient<CurrencyConverter>();
-            builder.Services.AddTransient<IanaDatetimeConverter>();
+            builder.Services.AddTransient<ITimeZoneConverter, IanaDatetimeConverter>();
 
             builder.Services.AddMapperBillingTypes();
 

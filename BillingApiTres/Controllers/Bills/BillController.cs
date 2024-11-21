@@ -13,6 +13,7 @@ namespace BillingApiTres.Controllers.Bills
     public class BillController(IBillRepository billRepository,
                                 IAccountKeyRepository accountKeyRepository,
                                 AcmeGwClient gwClient,
+                                ITimeZoneConverter timeZoneConverter,
                                 IMapper mapper,
                                 CurrencyConverter currencyConverter,
                                 ILogger<BillController> logger) : ControllerBase
