@@ -7,6 +7,8 @@ using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Microsoft.VisualBasic;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace BillingApiTres.Controllers.ServiceHierachies
@@ -43,12 +45,18 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             var account = await gwClient.Get<SalesAccount>($"sales/account/{response.AccountId}", token?.RawData!);
             var list = new List<SalesAccount> { parentAccount ?? new(), account };
 
-            var accountKeys = await accountKeyRepository.GetKeyList(list.Select(a => a.AccountId).ToList());
+            parentAccount.AccountId = 0;
+            var accountKeys = await accountKeyRepository.GetKeyList(new List<long> { account.AccountId });
+
+            var accountLinks = await gwClient.Get<List<AccountLink>>($"sales/accountLink?limit=999999&offset=0&accountIdCsv={account.AccountId}", token?.RawData!);
+            var accountUsers = await gwClient.Get<List<AccountUser>>($"sales/accountUser?limit=999999&offset=0&accountIdCsv={account.AccountId}", token?.RawData!);
 
             return mapper.Map<ServiceHierarchyResponse>(response, options =>
             {
                 options.Items["accounts"] = list;
-                //options.Items["accountKeys"] = accountKeys;
+                options.Items["accountKeys"] = accountKeys;
+                options.Items["accountLink"] = accountLinks;
+                options.Items["accountUser"] = accountUsers;
             });
         }
 
@@ -116,6 +124,15 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             var accounts = await gwClient
                 .Get<List<SalesAccount>>($"sales/account?limit=999999&accountIds={string.Join(",", ids)}",
                                          token?.RawData!);
+
+            var accountLinks = await gwClient
+                .Get<List<AccountLink>>($"sales/accountLink?limit=999999&offset=0&accountIdCsv={string.Join(",", list.Select(a => a.AccountId))}",
+                                        token?.RawData!);
+
+            var accountUsers = await gwClient
+                .Get<List<AccountUser>>($"sales/accountUser?limit=999999&offset=0&accountIdCsv={string.Join(",", list.Select(a => a.AccountId))}",
+                                        token?.RawData!);
+
             var accountKeys = await accountKeyRepository
                 .GetKeyList(ids);
 
@@ -123,6 +140,8 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             {
                 opt.Items["accounts"] = accounts;
                 opt.Items["accountKeys"] = accountKeys;
+                opt.Items["accountLink"] = accountLinks;
+                opt.Items["accountUser"] = accountUsers;
             });
         }
     }

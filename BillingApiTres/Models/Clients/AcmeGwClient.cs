@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Diagnostics.Eventing.Reader;
 
 namespace BillingApiTres.Models.Clients
 {
@@ -66,5 +67,17 @@ namespace BillingApiTres.Models.Clients
         public string Id { get; set; }
         [JsonPropertyName("username")]
         public string Name { get; set; }
+    }
+
+    public record AccountUser
+    {
+        [JsonPropertyName("accountId")]
+        public long AccountId { get; set; }
+    }
+
+    public record AccountLink
+    {
+        [JsonPropertyName("accountId")]
+        public long AccountId { get; set; }
     }
 }
