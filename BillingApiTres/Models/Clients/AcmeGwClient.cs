@@ -47,7 +47,7 @@ namespace BillingApiTres.Models.Clients
     public record SalesAccount
     {
         [JsonPropertyName("accountId")]
-        public int AccountId { get; set; }
+        public long AccountId { get; set; }
         [JsonPropertyName("accountName")]
         public string AccountName { get; set; }
     }

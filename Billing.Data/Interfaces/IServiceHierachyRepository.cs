@@ -8,6 +8,7 @@ namespace Billing.Data.Interfaces
         Task Delete(ServiceHierarchy entity);
         Task<ServiceHierarchy?> Get(long serialNo);
         Task<List<ServiceHierarchy>> GetChild(long parentAccountId);
+        Task<List<ServiceHierarchy>> GetChild(List<long> parentAccountIds);
         Task<ServiceHierarchy?> GetParent(long accountId);
         Task Update(ServiceHierarchy entity);
     }

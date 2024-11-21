@@ -1,16 +1,13 @@
 ﻿using AutoMapper;
-using Azure.Core;
 using Billing.Data.Interfaces;
 using Billing.Data.Models;
-using Billing.EF.Repositories;
-using BillingApiTres.Controllers.Tenants;
+using Billing.Data.Models.Sale;
 using BillingApiTres.Converters;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.ResponseCaching;
-using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace BillingApiTres.Controllers.ServiceHierachies
 {
@@ -18,6 +15,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
     [Authorize]
     public class GetServiceHierachyController(
         IServiceHierarchyRepository serviceHierachyRepository,
+        IAccountKeyRepository accountKeyRepository,
         IMapper mapper,
         AcmeGwClient gwClient,
         ILogger<GetServiceHierachyController> logger) : ControllerBase
@@ -45,16 +43,29 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             var account = await gwClient.Get<SalesAccount>($"sales/account/{response.AccountId}", token?.RawData!);
             var list = new List<SalesAccount> { parentAccount ?? new(), account };
 
+            var accountKeys = await accountKeyRepository.GetKeyList(list.Select(a => a.AccountId).ToList());
+
             return mapper.Map<ServiceHierarchyResponse>(response, options =>
             {
                 options.Items["accounts"] = list;
+                //options.Items["accountKeys"] = accountKeys;
             });
         }
 
         [HttpGet("/service-organizations/{accountId}/hierarchy")]
-        public async Task<ActionResult<List<ServiceHierarchyResponse>>> GetList(long accountId)
+        public async Task<ActionResult<List<ServiceHierarchyResponse>>> GetList(string accountId)
         {
-            var parent = await serviceHierachyRepository.GetParent(accountId);
+#if DEBUG
+            AccountKey account = new AccountKey();
+
+            if (long.TryParse(accountId, out long aid) && accountId.Length != 7)
+                account.AccountId = aid;
+            else
+                account = await accountKeyRepository.GetId(accountId);
+#else
+            var account = await accountKeyRepository.GetId(accountId);
+#endif
+            var parent = await serviceHierachyRepository.GetParent(account.AccountId);
             if (parent == null)
             {
                 logger.LogError($"계약 공급 업체를 찾을 수 없음 : account id - {accountId}");
@@ -62,7 +73,6 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             }
 
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
-            var accounts = await gwClient.Get<List<SalesAccount>>("account?limit=99999", token?.RawData!);
             
             AccountType accountType = AccountType.None;
             if (parent.ParentAccId == 0)
@@ -72,81 +82,48 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             else
                 accountType = AccountType.Customer;
 
+            parent.ParentAccId = 0; //상위 계약 업체 정보 노출 방지
+
             if (accountType == AccountType.Acme)
             {
-                var responses = new List<ServiceHierarchyResponse>();
+                var partners = await serviceHierachyRepository.GetChild(account.AccountId);
+                var customers = await serviceHierachyRepository
+                    .GetChild(partners.Select(p => p.AccountId).ToList());
 
-                responses.Add(mapper.Map<ServiceHierarchyResponse>(parent, options =>
-                {
-                    options.Items["accounts"] = accounts;
-                }));
-                var partners = await serviceHierachyRepository.GetChild(accountId);
+                List<ServiceHierarchy> list = [parent, .. partners, .. customers];
 
-                var res = await MapMany(mapper, partners, accounts);
-                responses.AddRange(res);
-
-                return responses;
+                return await MapResponse(list, token);
             }
             else if (accountType == AccountType.Partner)
             {
-                var responses = new List<ServiceHierarchyResponse>();
-                responses.AddRange(ConfigureParent(mapper, parent, accounts));
-                var customers = await serviceHierachyRepository.GetChild(accountId);
-                responses.AddRange(customers.Select(c =>  mapper.Map<ServiceHierarchyResponse>(c, options =>
-                {
-                    options.Items["accounts"] = accounts;
-                })));
+                var customers = await serviceHierachyRepository.GetChild(account.AccountId);
 
-                return responses;
+                List<ServiceHierarchy> list = [parent, .. customers];
+
+                var accountKeys = await accountKeyRepository.GetKeyList(list.Select(a => a.AccountId).ToList());
+
+                return await MapResponse(list, token);
             }
             else
             {
-                return ConfigureParent(mapper, parent, accounts);
+                return await MapResponse(new List<ServiceHierarchy> { parent }, token);
             }
         }
 
-        private List<ServiceHierarchyResponse> ConfigureParent(IMapper mapper, ServiceHierarchy item, List<SalesAccount> accounts)
+        private async Task<List<ServiceHierarchyResponse>> MapResponse(List<ServiceHierarchy> list, JwtSecurityToken token)
         {
-            var responses = new List<ServiceHierarchyResponse>();
+            var ids = list.SelectMany(a => new[] { a.ParentAccId, a.AccountId }).Distinct().ToList();
+            var accounts = await gwClient
+                .Get<List<SalesAccount>>($"sales/account?limit=999999&accountIds={string.Join(",", ids)}",
+                                         token?.RawData!);
+            var accountKeys = await accountKeyRepository
+                .GetKeyList(ids);
 
-            var parentId = item.ParentAccId;
-            var accId = item.AccountId;
-
-            item.AccountId = item.ParentAccId;
-            item.ParentAccId = 0;
-            
-            responses.Add(mapper.Map<ServiceHierarchyResponse>(item, options =>
+            return mapper.Map<List<ServiceHierarchyResponse>>(list, opt =>
             {
-                options.Items["accounts"] = accounts;
-            }));
-
-            item.ParentAccId = parentId;
-            item.AccountId = accId;
-            responses.Add(mapper.Map<ServiceHierarchyResponse>(item, options =>
-            {
-                options.Items["accounts"] = accounts;
-            }));
-
-            return responses;
-        }
-
-
-        private async Task<List<ServiceHierarchyResponse>> MapMany(IMapper mapper, List<ServiceHierarchy> source, List<SalesAccount> accounts)
-        {
-            List<ServiceHierarchyResponse> responses = new();
-            foreach (var sourceItem in source)
-            {
-                responses.Add(mapper.Map<ServiceHierarchyResponse>(sourceItem, options =>
-                {
-                    options.Items["accounts"] = accounts;
-                }));
-                var customers = await serviceHierachyRepository.GetChild(sourceItem.AccountId);
-                responses.AddRange(customers.Select(c => mapper.Map<ServiceHierarchyResponse>(c, options =>
-                {
-                    options.Items["accounts"] = accounts;
-                })));
-            }
-            return responses;
+                opt.Items["accounts"] = accounts;
+                opt.Items["accountKeys"] = accountKeys;
+            });
         }
     }
 }

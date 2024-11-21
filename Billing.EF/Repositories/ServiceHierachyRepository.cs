@@ -38,6 +38,15 @@ namespace Billing.EF.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<ServiceHierarchy>> GetChild(List<long> parentAccountIds)
+        {
+            return await iamContext.ServiceHierarchies
+                .Where(s => parentAccountIds.Contains(s.ParentAccId))
+                .Include(s => s.Tenant)
+                .Include(s => s.ServiceHierarchyConfigs)
+                .ToListAsync();
+        }
+
         public async Task<ServiceHierarchy?> Get(long serialNo)
         {
             return await iamContext.ServiceHierarchies

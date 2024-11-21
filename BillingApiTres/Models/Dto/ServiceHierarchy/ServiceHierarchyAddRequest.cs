@@ -16,11 +16,19 @@ namespace BillingApiTres.Models.Dto
 
         [Required]
         [SourceMember(nameof(ServiceHierarchy.ParentAccId))]
+        [JsonIgnore]
         public long ContractorId { get; set; }
+
+        [JsonPropertyName("contractorId")]
+        public string ContractorKey { get; set; }
 
         [Required]
         [SourceMember(nameof(ServiceHierarchy.AccountId))]
+        [JsonIgnore]
         public long ContracteeId { get; set; }
+
+        [JsonPropertyName("contracteeId")]
+        public string ContracteeKey { get; set; }
 
         [Required]
         [SourceMember(nameof(ServiceHierarchy.IsActive))]
