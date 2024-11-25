@@ -29,8 +29,6 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             var tz = HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
 
             entity.IsActive = updateRequest.IsActive ?? entity.IsActive;
-            entity.StartDate = updateRequest.ContractDate?.ToUniversalTime() ?? entity.StartDate;
-            entity.EndDate = updateRequest.ExpireDate?.ToUniversalTime() ?? entity.EndDate;
             entity.SavedAt = DateTime.UtcNow;
             if (updateRequest.ContractDate.HasValue)
                 entity.StartDate = timeZoneConverter.ConvertToUtc(updateRequest.ContractDate.Value, tz);
