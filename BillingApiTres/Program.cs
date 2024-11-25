@@ -125,6 +125,8 @@ namespace BillingApiTres
             app.UseHttpsRedirection();
             app.MapControllers();
 
+            app.UseTimezoneHeaderChecker();
+
             app.Run();
         }
     }
