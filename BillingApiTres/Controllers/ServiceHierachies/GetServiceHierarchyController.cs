@@ -20,6 +20,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         IAccountKeyRepository accountKeyRepository,
         IMapper mapper,
         AcmeGwClient gwClient,
+        IConfiguration config,
         ILogger<GetServiceHierachyController> logger) : ControllerBase
     {
         private enum AccountType
@@ -57,6 +58,8 @@ namespace BillingApiTres.Controllers.ServiceHierachies
                 options.Items["accountKeys"] = accountKeys;
                 options.Items["accountLink"] = accountLinks;
                 options.Items["accountUser"] = accountUsers;
+                options.Items["timezone"] =
+                    HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
             });
         }
 
@@ -142,6 +145,8 @@ namespace BillingApiTres.Controllers.ServiceHierachies
                 opt.Items["accountKeys"] = accountKeys;
                 opt.Items["accountLink"] = accountLinks;
                 opt.Items["accountUser"] = accountUsers;
+                opt.Items["timezone"] = 
+                    HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
             });
         }
     }

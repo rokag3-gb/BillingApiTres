@@ -9,7 +9,7 @@ namespace BillingApiTres.Models.Dto
     public record ServiceHierarchyResponse
     {
         [SourceMember(nameof(ServiceHierarchy.Sno))]
-        public int SerialNo { get; set; }
+        public long SerialNo { get; set; }
         [SourceMember(nameof(ServiceHierarchy.TenantId))]
         public string TenantId { get; set; }
         //[SourceMember(nameof(ServiceHierarchy.Tenant.RealmName))]

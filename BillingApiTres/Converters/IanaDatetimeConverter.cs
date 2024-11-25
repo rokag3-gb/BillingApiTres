@@ -14,7 +14,7 @@ namespace BillingApiTres.Converters
             return datetime;
         }
 
-        public DateTime ConvertToSource(DateTime source, string timezoneId)
+        public DateTime ConvertToLocal(DateTime source, string timezoneId)
         {
             var datetime = DateTime.UtcNow;
 

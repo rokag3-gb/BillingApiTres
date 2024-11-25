@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Billing.Data.Interfaces;
+using BillingApiTres.Converters;
 using BillingApiTres.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +12,8 @@ namespace BillingApiTres.Controllers.ServiceHierachies
     public class UpdateServiceHierarchyController(
         IServiceHierarchyRepository serviceHierachyRepository,
         IMapper mapper,
+        IConfiguration config,
+        ITimeZoneConverter timeZoneConverter,
         ILogger<UpdateServiceHierarchyController> logger) : ControllerBase
     {
         [HttpPut("/service-organizations/{serialNo}")]
@@ -23,10 +26,17 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             if (entity == null)
                 return Conflict($"대상이 존재하지 않습니다 : {updateRequest}");
 
+            var tz = HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
+
             entity.IsActive = updateRequest.IsActive ?? entity.IsActive;
             entity.StartDate = updateRequest.ContractDate?.ToUniversalTime() ?? entity.StartDate;
             entity.EndDate = updateRequest.ExpireDate?.ToUniversalTime() ?? entity.EndDate;
             entity.SavedAt = DateTime.UtcNow;
+            if (updateRequest.ContractDate.HasValue)
+                entity.StartDate = timeZoneConverter.ConvertToUtc(updateRequest.ContractDate.Value, tz);
+            if (updateRequest.ExpireDate.HasValue)
+                entity.EndDate = timeZoneConverter.ConvertToUtc(updateRequest.ExpireDate.Value, tz);
+
             foreach (var updateConfig in updateRequest.Configs.OrderBy(c => c.ConfigId) ?? Enumerable.Empty<ServiceHierarchyConfigUpdateRequest>())
             {
                 if (updateConfig.ConfigId is null || updateConfig.ConfigId == 0)

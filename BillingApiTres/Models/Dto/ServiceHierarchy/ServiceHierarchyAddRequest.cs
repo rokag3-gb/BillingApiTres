@@ -35,12 +35,12 @@ namespace BillingApiTres.Models.Dto
         public bool IsActive { get; set; }
 
         [Required]
-        [Iso8601UtcValidation]
+        //[Iso8601UtcValidation]
         [SourceMember(nameof(ServiceHierarchy.StartDate))]
         public DateTime ContractDate { get; set; }
 
         [Required]
-        [Iso8601UtcValidation]
+        //[Iso8601UtcValidation]
         [SourceMember(nameof(ServiceHierarchy.EndDate))]
         public DateTime ExpireDate { get; set; }
 

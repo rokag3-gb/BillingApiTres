@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Client;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Principal;
 
 namespace BillingApiTres.Controllers.ServiceHierachies
 {
@@ -20,6 +21,8 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         IAccountKeyRepository accountKeyRepository,
         AcmeGwClient gwClient,
         IMapper mapper,
+        IConfiguration config,
+        ITimeZoneConverter timeZoneConverter,
         ILogger<AddServiceHierarchyController> logger) : ControllerBase
     {
         [HttpPost("/service-organizations")]
@@ -28,6 +31,8 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         {
             if (addRequest == null)
                 return BadRequest(new ArgumentNullException(nameof(addRequest)));
+
+            var tz = HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
 
             var accountKeys = await accountKeyRepository
                 .GetIdList(new List<string>() { addRequest.ContractorKey, addRequest.ContracteeKey });
@@ -38,15 +43,23 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             entity.AccountId = accountKeys.Where(ak => ak.AccountKey1 == addRequest.ContracteeKey).First().AccountId;
             entity.SavedAt = DateTime.UtcNow;
             entity.SaverId = token?.Subject;
+            entity.StartDate = timeZoneConverter.ConvertToUtc(addRequest.ContractDate, tz);
+            entity.EndDate = timeZoneConverter.ConvertToUtc(addRequest.ExpireDate, tz);
 
             var accounts = await gwClient
                 .Get<List<SalesAccount>>($"sales/account?limit=99999&accountIds={entity.ParentAccId},{entity.AccountId}", token?.RawData!);
+
+            var accountLinks = await gwClient.Get<List<AccountLink>>($"sales/accountLink?limit=999999&offset=0&accountIdCsv={entity.AccountId}", token?.RawData!);
+            var accountUsers = await gwClient.Get<List<AccountUser>>($"sales/accountUser?limit=999999&offset=0&accountIdCsv={entity.AccountId}", token?.RawData!);
 
             var addedEntity = await serviceHierarchyRepository.Add(entity);
             var returnDto = mapper.Map<ServiceHierarchyResponse>(addedEntity, options =>
             {
                 options.Items["accounts"] = accounts;
                 options.Items["accountKeys"] = accountKeys;
+                options.Items["accountLink"] = accountLinks;
+                options.Items["accountUser"] = accountUsers;
+                options.Items["timezone"] = tz;
             });
 
             //return CreatedAtAction(nameof(GetServiceHierachyController.Get), new { serialNo = returnDto.SerialNo}, returnDto);

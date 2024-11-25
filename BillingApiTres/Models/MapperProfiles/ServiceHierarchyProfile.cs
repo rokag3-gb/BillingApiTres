@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Billing.Data.Models;
 using Billing.Data.Models.Sale;
+using BillingApiTres.Converters;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
 
@@ -11,56 +12,42 @@ namespace BillingApiTres.Models.MapperProfiles
         public ServiceHierarchyProfile()
         {
             CreateMap<ServiceHierarchy, ServiceHierarchyResponse>()
-                        .ForMember(dest => dest.TenantId, opt => opt.MapFrom(src => src.TenantId))
-                        .ForMember(dest => dest.SerialNo, opt => opt.MapFrom(src => src.Sno))
-                        .ForMember(dest => dest.RealmName, opt => opt.MapFrom(src => src.Tenant.RealmName))
-                        .ForMember(dest => dest.ContractorId, opt => opt.MapFrom(src => src.ParentAccId))
-                        .ForMember(dest => dest.ContractorKey, opt => opt.MapFrom(MapContractorKey))
-                        .ForMember(dest => dest.ContractorName, opt => opt.MapFrom<string?>(MapContractorName))
-                        .ForMember(dest => dest.ContracteeId, opt => opt.MapFrom(src => src.AccountId))
-                        .ForMember(dest => dest.ContracteeKey, opt => opt.MapFrom(MapContracteeKey))
-                        .ForMember(dest => dest.ContracteeName, opt => opt.MapFrom<string>(MapContracteeName))
-                        .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
-                        .ForMember(dest => dest.ContractDate, opt => opt.MapFrom(src => src.StartDate))
-                        .ForMember(dest => dest.ExpireDate, opt => opt.MapFrom(src => src.EndDate))
-                        .ForMember(dest => dest.Configs, opt => opt.MapFrom(src => src.ServiceHierarchyConfigs))
-                        .ForMember(dest => dest.AccountLinkCount, opt => opt.MapFrom(MapAccountLinkCount))
-                        .ForMember(dest => dest.AccountUserCount, opt => opt.MapFrom(MapAccountUserCount));
+                .AfterMap<ServiceHierarchyResponseMappingAction>();
         }
+    }
 
-        private string MapContractorName(ServiceHierarchy s, ServiceHierarchyResponse d, string m, ResolutionContext c)
+    public class ServiceHierarchyResponseMappingAction : IMappingAction<ServiceHierarchy, ServiceHierarchyResponse>
+    {
+        private readonly ITimeZoneConverter _timezoneConverter;
+        public ServiceHierarchyResponseMappingAction(ITimeZoneConverter timeZoneConverter)
         {
-            object? accountsObj = default;
-            if (c.TryGetItems(out var items) == false)
-                return "";
-            if (items.TryGetValue("accounts", out accountsObj) == false)
-                return "";
-            if ((accountsObj is List<SalesAccount>) == false)
-                return "";
-
-            var accounts = accountsObj as List<SalesAccount>;
-            return accounts?.Where(a => a.AccountId == s.ParentAccId).FirstOrDefault()?.AccountName ?? "";
+            _timezoneConverter = timeZoneConverter;
         }
 
-        private string MapContracteeName(ServiceHierarchy s, ServiceHierarchyResponse d, string m, ResolutionContext c)
+        public void Process(ServiceHierarchy source, ServiceHierarchyResponse destination, ResolutionContext context)
         {
-            object? accountsObj = default;
-            if (c.TryGetItems(out var items) == false)
-                return "";
-            if (items.TryGetValue("accounts", out accountsObj) == false)
-                return "";
-            if ((accountsObj is List<SalesAccount>) == false)
-                return "";
-
-            var accounts = accountsObj as List<SalesAccount>;
-            return accounts?.Where(a => a?.AccountId == s.AccountId).FirstOrDefault()?.AccountName ?? "";
+            destination.TenantId = source.TenantId;
+            destination.SerialNo = source.Sno;
+            destination.RealmName = source.Tenant.RealmName;
+            destination.ContractorId = source.ParentAccId;
+            destination.ContractorKey = MapAccountKey(source.ParentAccId, context);
+            destination.ContractorName = MapAccountName(source.ParentAccId, context);
+            destination.ContracteeId = source.AccountId;
+            destination.ContracteeKey = MapAccountKey(source.AccountId, context);
+            destination.ContracteeName = MapAccountName(source.AccountId, context);
+            destination.IsActive = source.IsActive;
+            destination.ContractDate = ConvertToLocalTime(source.StartDate, context);
+            destination.ExpireDate = ConvertToLocalTime(source.EndDate, context);
+            destination.Configs = context.Mapper.Map<ICollection<ServiceHierarchyConfigResponse>>(source.ServiceHierarchyConfigs);
+            destination.AccountLinkCount = MapAccountLinkCount(source.AccountId, context);
+            destination.AccountUserCount = MapAccountUserCount(source.AccountId, context);
         }
 
-        private string MapContractorKey(ServiceHierarchy s, ServiceHierarchyResponse d, string m, ResolutionContext c)
+        private string MapAccountKey(long accountId, ResolutionContext context)
         {
             object? accountKeyObj = default;
 
-            if (c.TryGetItems(out var items) == false)
+            if (context.TryGetItems(out var items) == false)
                 return "";
             if (items.TryGetValue("accountKeys", out accountKeyObj) == false)
                 return "";
@@ -69,32 +56,39 @@ namespace BillingApiTres.Models.MapperProfiles
 
             var accountKeys = accountKeyObj as List<AccountKey>;
 #if DEBUG
-            return accountKeys?.Where(ak => ak?.AccountId == s.ParentAccId)?.FirstOrDefault()?.AccountKey1 + $"({s.ParentAccId})" ?? "";
+            return accountKeys?.Where(ak => ak?.AccountId == accountId)?.FirstOrDefault()?.AccountKey1 + $"({accountId})" ?? "";
 #else
-            return accountKeys?.Where(ak => ak?.AccountId == s.ParentAccId)?.FirstOrDefault()?.AccountKey1 ?? "";
+            return accountKeys?.Where(ak => ak?.AccountId == accountId)?.FirstOrDefault()?.AccountKey1 ?? "";
 #endif
         }
 
-        private string MapContracteeKey(ServiceHierarchy s, ServiceHierarchyResponse d, string m, ResolutionContext c)
+        private string MapAccountName(long accountId, ResolutionContext context)
         {
-            object? accountKeyObj = default;
+            object? accountsObj = default;
+            if (context.TryGetItems(out var items) == false)
+                return "";
+            if (items.TryGetValue("accounts", out accountsObj) == false)
+                return "";
+            if ((accountsObj is List<SalesAccount>) == false)
+                return "";
 
-            if (c.TryGetItems(out var items) == false)
-                return "";
-            if (items.TryGetValue("accountKeys", out accountKeyObj) == false)
-                return "";
-            if ((accountKeyObj is List<AccountKey>) == false)
-                return "";
-
-            var accountKeys = accountKeyObj as List<AccountKey>;
-#if DEBUG
-            return accountKeys?.Where(ak => ak?.AccountId == s.AccountId)?.FirstOrDefault()?.AccountKey1 + $"({s.AccountId})" ?? "";
-#else
-            return accountKeys?.Where(ak => ak?.AccountId == s.AccountId)?.FirstOrDefault()?.AccountKey1 ?? "";
-#endif
+            var accounts = accountsObj as List<SalesAccount>;
+            return accounts?.Where(a => a?.AccountId == accountId).FirstOrDefault()?.AccountName ?? "";
         }
 
-        private int MapAccountUserCount(ServiceHierarchy s, ServiceHierarchyResponse d, int m, ResolutionContext c)
+        private DateTime ConvertToLocalTime(DateTime dateTime, ResolutionContext context)
+        {
+            object? tzObject = default;
+            if (context.TryGetItems(out var items) == false)
+                return DateTime.MinValue;
+            if (items.TryGetValue("timezone", out  tzObject) == false)
+                return DateTime.MinValue;
+            
+            var tz = tzObject.ToString();
+            return _timezoneConverter.ConvertToLocal(dateTime, tz!);
+        }
+
+        private int MapAccountUserCount(long accountId, ResolutionContext c)
         {
             object? accountUserObj = default;
 
@@ -106,10 +100,10 @@ namespace BillingApiTres.Models.MapperProfiles
                 return 0;
 
             var accountUser = accountUserObj as List<AccountUser>;
-            return accountUser?.Where(au => au?.AccountId == s.AccountId)?.Count() ?? 0;
+            return accountUser?.Where(au => au?.AccountId == accountId)?.Count() ?? 0;
         }
 
-        private int MapAccountLinkCount(ServiceHierarchy s, ServiceHierarchyResponse d, int m, ResolutionContext c)
+        private int MapAccountLinkCount(long accountId, ResolutionContext c)
         {
             object? accountLinkObj = default;
 
@@ -121,7 +115,7 @@ namespace BillingApiTres.Models.MapperProfiles
                 return 0;
 
             var accountLink = accountLinkObj as List<AccountLink>;
-            return accountLink?.Where(al => al.AccountId == s.AccountId).Count() ?? 0;
+            return accountLink?.Where(al => al.AccountId == accountId).Count() ?? 0;
         }
     }
 }
