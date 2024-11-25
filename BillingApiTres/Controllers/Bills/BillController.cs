@@ -15,6 +15,7 @@ namespace BillingApiTres.Controllers.Bills
                                 AcmeGwClient gwClient,
                                 ITimeZoneConverter timeZoneConverter,
                                 IMapper mapper,
+                                IConfiguration config,
                                 CurrencyConverter currencyConverter,
                                 ILogger<BillController> logger) : ControllerBase
     {
@@ -25,6 +26,7 @@ namespace BillingApiTres.Controllers.Bills
                 return BadRequest($"검색 기간 설정 오류 : {request.From} ~ {request.To}");
 
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
+            var tz = HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
 
             //get account id
             var accountKeys = await accountKeyRepository.GetIdList(request.AccountIds);
@@ -32,7 +34,11 @@ namespace BillingApiTres.Controllers.Bills
             //var accounts = await gwClient.Get<List<SalesAccount>>($"sales/account?limit=999999&accountIds={string.Join(",", accountIds)}", token?.RawData!);
 
             //get bills
-            var bills = billRepository.GetRange(request.From, request.To, accountIds, request.Offset, request.limit);
+            var bills = billRepository.GetRange(timeZoneConverter.ConvertToUtc(request.From, tz!),
+                                                timeZoneConverter.ConvertToUtc(request.To, tz!),
+                                                accountIds,
+                                                request.Offset,
+                                                request.limit);
 
             //get status codes
             var codes = new List<SaleCode>();
@@ -81,6 +87,12 @@ namespace BillingApiTres.Controllers.Bills
                         br.BuyerManageName = users?.FirstOrDefault(u => u.Id == b.BuyerManagerId)?.Name ?? string.Empty;
                         br.SellerManageName = users?.FirstOrDefault(u => u.Id == b.SellerManagerId)?.Name ?? string.Empty;
                         br.SaverName = users?.FirstOrDefault(u => u.Id == b.SaverId)?.Name ?? string.Empty;
+                        br.BillDate = timeZoneConverter.ConvertToLocal(b.BillDate, tz);
+                        if (b.ConsumptionStartDate.HasValue)
+                            br.ConsumptionStartDate = timeZoneConverter.ConvertToLocal(b.ConsumptionStartDate.Value, tz);
+                        if (b.ConsumptionEndDate.HasValue)
+                            br.ConsumptionEndDate = timeZoneConverter.ConvertToLocal(b.ConsumptionEndDate.Value, tz);
+                        br.SavedAt = timeZoneConverter.ConvertToLocal(b.SavedAt, tz);
                     });
                 });
             }).ToList();
