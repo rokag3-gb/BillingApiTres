@@ -91,6 +91,8 @@ namespace BillingApiTres
                         new string[] {}
                     }
                 });
+
+                options.OperationFilter<SwaggerCustomHeader>();
             });
 
             builder.Services.AddDbContext<IAMContext>(options =>
