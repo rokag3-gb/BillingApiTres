@@ -12,12 +12,11 @@ variables:
   tag: '$(Build.BuildId)'
   latestTag: "latest"  
   ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
-    dockerRegistryServiceConnection: 'BillingApiTresDev'
     containerRegistry: 'billingapitresdev.azurecr.io'
     azureSubscriptionId: 'MSFT_Azure_Sponsorship_Gold'
     containerAppName: 'billling3-api-dev'
     containerAppRg: 'RG-SDTeam2022-Dev'
-    containerRegistryName: $(dev-registry-name)
+    containerRegistryName: BillingApiTresDev
     containerRegistryPassword: $(dev-registry-password)
     imageRepository: 'billingapitres'
 
@@ -56,7 +55,7 @@ stages:
       inputs:
         appSourcePath: '$(Build.SourcesDirectory)'
         azureSubscription: $(azureSubscriptionId)
-        acrName: $(acrName)
+        acrName: $(containerRegistryName)
         containerAppName: $(containerAppName)
         resourceGroup: $(containerAppRg)
         imageToDeploy: '$(containerRegistry)/$(imageRepository):$(latestTag)'
