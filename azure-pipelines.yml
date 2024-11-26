@@ -1,0 +1,61 @@
+# Docker
+# Build a Docker image
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+  latestTag: "latest"  
+  ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    containerRegistry: 'billingapitresprd.azurecr.io'
+    azureSubscriptionId: 'AzureCSP_SUBS-CM-PRD'
+    containerAppName: 'billling3-api-prd'
+    containerAppRg: 'rg-SD-Team-Billing3'
+    containerRegistryName: BillingApiTresPrd
+    containerRegistryPassword: $(prd-registry-password)
+    imageRepository: 'billingapitres'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - script: |
+        echo 'build docker image...'
+        docker build -f "./BillingApiTres/Dockerfile" -t $(containerRegistry)/$(imageRepository):$(tag) .
+      displayName: 'Build docker image'
+    - script: |
+        docker login -u $(containerRegistryName) -p $(containerRegistryPassword) $(containerRegistry)
+        echo 'Pushing docker image...'
+        # echo $(containerRegistryPassword) | docker login $(containerRegistryName) --password-stdin $(containerRegistry)
+        docker tag $(containerRegistry)/$(imageRepository):$(tag) $(containerRegistry)/$(imageRepository):$(latestTag)
+        docker push $(containerRegistry)/$(imageRepository):$(tag)
+        docker push $(containerRegistry)/$(imageRepository):$(latestTag)
+      displayName: 'Push docker image'
+    #- task: Docker@2
+    #  displayName: Build and push an image to container registry
+    #  inputs:
+    #    command: buildAndPush
+    #    repository: $(imageRepository)
+    #    dockerfile: '$(Build.SourcesDirectory)/BillingApiTres/Dockerfile'
+    #    containerRegistry: $(dockerRegistryServiceConnection)
+    #    buildContext: $(Build.SourcesDirectory)
+    #    tags: |
+    #      $(tag) */
+    - task: AzureContainerApps@1
+      inputs:
+        appSourcePath: '$(Build.SourcesDirectory)'
+        azureSubscription: $(azureSubscriptionId)
+        acrName: $(containerRegistryName)
+        containerAppName: $(containerAppName)
+        resourceGroup: $(containerAppRg)
+        imageToDeploy: '$(containerRegistry)/$(imageRepository):$(latestTag)'
