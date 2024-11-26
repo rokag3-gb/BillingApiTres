@@ -32,13 +32,12 @@ stages:
     steps:
     - script: |
         echo 'build docker image...'
-        pwd
-        ls
         docker build -f "./BillingApiTres/Dockerfile" -t $(imageRepository):$(tag) .
       displayName: 'Build docker image'
     - script: |
-        docker login -u $(containerRegistryName) -p $(containerRegistryPassword) billingapitresdev.azurecr.io
+        # docker login -u $(containerRegistryName) -p $(containerRegistryPassword) billingapitresdev.azurecr.io
         echo 'Pushing docker image...'
+        echo $(containerRegistryPassword) | docker login $(containerRegistryName) --password-stdin billingapitresdev.azurecr.io
         docker tag $(containerRegistry)/$(imageRepository):$(tag) $(containerRegistry)/$(imageRepository):$(latestTag)
         docker push $(containerRegistry)/$(imageRepository):$(tag)
         docker push $(containerRegistry)/$(imageRepository):$(latestTag)
