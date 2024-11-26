@@ -13,7 +13,7 @@ variables:
   latestTag: "latest"  
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     containerRegistry: 'billingapitresprd.azurecr.io'
-    azureSubscriptionId: 'AzureCSP_SUBS-CM-PRD'
+    azureSubscriptionId: 'Azure-Subs-CM-PRD'
     containerAppName: 'billling3-api-prd'
     containerAppRg: 'rg-SD-Team-Billing3'
     containerRegistryName: BillingApiTresPrd
