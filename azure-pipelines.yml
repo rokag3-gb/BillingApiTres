@@ -32,7 +32,7 @@ stages:
     steps:
     - script: |
         echo 'build docker image...'
-        docker build -f "./BillingApiTres/Dockerfile" -t $(imageRepository):$(tag) .
+        docker build -f "./BillingApiTres/Dockerfile" -t $(containerRegistry)/$(imageRepository):$(tag) .
       displayName: 'Build docker image'
     - script: |
         docker login -u $(containerRegistryName) -p $(containerRegistryPassword) billingapitresdev.azurecr.io
