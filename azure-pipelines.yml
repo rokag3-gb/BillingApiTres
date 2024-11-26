@@ -33,6 +33,7 @@ stages:
     - script: |
         echo 'build docker image...'
         pwd
+        ls
         docker build -f ".\BillingApiTres\Dockerfile" -t $(imageRepository):$(tag) .
       displayName: 'Build docker image'
     - script: |
