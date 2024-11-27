@@ -6,6 +6,7 @@ namespace BillingApiTres.Models.Dto
     [AutoMap(typeof(Bill))]
     public record BillResponse
     {
+        public long BillId { get; set; }
         public DateTime BillDate { get; set; }
         public string BillMonth => BillDate.ToString("yyyyMM");
         public string SellerAccountName { get; set; }
