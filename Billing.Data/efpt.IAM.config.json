@@ -20,6 +20,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[ServiceHierarchy_Config]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Tenant]",
          "ObjectType": 0
       }
@@ -42,7 +46,6 @@
    "UseNoObjectFilter": false,
    "UseNodaTime": false,
    "UseNullableReferences": true,
-   "UsePrefixNavigationNaming": false,
    "UseSchemaFolders": false,
    "UseSchemaNamespaces": false,
    "UseSpatial": false,

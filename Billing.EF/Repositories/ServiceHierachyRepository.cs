@@ -1,11 +1,14 @@
 ﻿using Billing.Data.Interfaces;
 using Billing.Data.Models;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Markup;
 
 namespace Billing.EF.Repositories
 {
@@ -16,8 +19,8 @@ namespace Billing.EF.Repositories
             try
             {
                 return await iamContext.ServiceHierarchies
-                    .Include(s => s.Tenant)                
-                    .AsNoTracking()                    
+                    .Include(s => s.Tenant)
+                    .Include(s => s.ServiceHierarchyConfigs)
                     .SingleOrDefaultAsync(s => s.AccountId == accountId);
             }
             catch (InvalidOperationException ex)
@@ -31,16 +34,50 @@ namespace Billing.EF.Repositories
             return await iamContext.ServiceHierarchies
                 .Where(s => s.ParentAccId == parentAccountId)
                 .Include(s => s.Tenant)
-                .AsNoTracking()
+                .Include(s => s.ServiceHierarchyConfigs)
                 .ToListAsync();
         }
 
-        public async Task<ServiceHierarchy?> Get(int serialNo)
+        public async Task<List<ServiceHierarchy>> GetChild(List<long> parentAccountIds)
+        {
+            return await iamContext.ServiceHierarchies
+                .Where(s => parentAccountIds.Contains(s.ParentAccId))
+                .Include(s => s.Tenant)
+                .Include(s => s.ServiceHierarchyConfigs)
+                .ToListAsync();
+        }
+
+        public async Task<ServiceHierarchy?> Get(long serialNo)
         {
             return await iamContext.ServiceHierarchies
                 .Include(s => s.Tenant)
-                .AsNoTracking()
+                .Include(s => s.ServiceHierarchyConfigs)
                 .FirstOrDefaultAsync(s => s.Sno == serialNo);
+        }
+
+        public async Task Update(ServiceHierarchy entity)
+        {
+            using var trans = await iamContext.Database.BeginTransactionAsync();
+
+            iamContext.ServiceHierarchies.Update(entity);
+            await iamContext.SaveChangesAsync();
+
+            await trans.CommitAsync();
+        }
+
+        public async Task<ServiceHierarchy> Add(ServiceHierarchy entity)
+        {
+            entity.Tenant = iamContext.Tenants.Single(t => t.TenantId == entity.TenantId);
+            var added = iamContext.ServiceHierarchies.Add(entity);
+            await iamContext.SaveChangesAsync();
+
+            return added.Entity;
+        }
+
+        public async Task Delete(ServiceHierarchy entity)
+        {
+            iamContext.Remove(entity);
+            await iamContext.SaveChangesAsync();
         }
     }
 }

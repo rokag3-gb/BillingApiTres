@@ -3,6 +3,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 trigger:
+- develop
 - master
 
 resources:
@@ -11,6 +12,14 @@ resources:
 variables:
   tag: '$(Build.BuildId)'
   latestTag: "latest"  
+  ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
+    containerRegistry: 'billingapitresdev.azurecr.io'
+    azureSubscriptionId: 'MSFT_Azure_Sponsorship_Gold'
+    containerAppName: 'billling3-api-dev'
+    containerAppRg: 'RG-SDTeam2022-Dev'
+    containerRegistryName: BillingApiTresDev
+    containerRegistryPassword: $(dev-registry-password)
+    imageRepository: 'billingapitres'
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     containerRegistry: 'billingapitresprd.azurecr.io'
     azureSubscriptionId: 'Azure-Subs-CM-PRD'

@@ -2,10 +2,11 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Diagnostics.Eventing.Reader;
 
 namespace BillingApiTres.Models.Clients
 {
-    public class SalesClient(HttpClient httpClient, ILogger<SalesClient> logger)
+    public class AcmeGwClient(HttpClient httpClient, ILogger<AcmeGwClient> logger)
     {
         private readonly string _resource = "sales";
 
@@ -14,7 +15,7 @@ namespace BillingApiTres.Models.Clients
         /// </summary>
         public async Task<T> Get<T>(string uri, string token)
         {
-            var combinedUri = string.Join("/", new[] { httpClient.BaseAddress.ToString().TrimEnd('/') }.Concat(new[] { _resource, uri }.Select(s => s.Trim('/'))));
+            var combinedUri = string.Join("/", new[] { httpClient.BaseAddress?.ToString().TrimEnd('/') }.Concat(new[] { uri }.Select(s => s.Trim('/'))));
 
             using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(combinedUri));
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -47,8 +48,36 @@ namespace BillingApiTres.Models.Clients
     public record SalesAccount
     {
         [JsonPropertyName("accountId")]
-        public int AccountId { get; set; }
+        public long AccountId { get; set; }
         [JsonPropertyName("accountName")]
         public string AccountName { get; set; }
+    }
+
+    public record SaleCode
+    {
+        [JsonPropertyName("codeKey")]
+        public string Code { get; set; }
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+    }
+
+    public record IamUserEntity
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; }
+        [JsonPropertyName("username")]
+        public string Name { get; set; }
+    }
+
+    public record AccountUser
+    {
+        [JsonPropertyName("accountId")]
+        public long AccountId { get; set; }
+    }
+
+    public record AccountLink
+    {
+        [JsonPropertyName("accountId")]
+        public long AccountId { get; set; }
     }
 }

@@ -1,6 +1,9 @@
 ﻿using Billing.Data.Interfaces;
 using Billing.Data.Models;
+using Billing.Data.Models.Bill;
+using Billing.Data.Models.Sale;
 using Billing.EF.Repositories;
+using BillingApiTres.Converters;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -26,11 +29,16 @@ namespace BillingApiTres
             #region regist repositories
             builder.Services.AddScoped<ITenantRepository, TenantRepository>();
             builder.Services.AddScoped<IServiceHierarchyRepository, ServiceHierarchyRepository>();
+            builder.Services.AddScoped<IAccountKeyRepository, AccountKeyRepository>();
+            builder.Services.AddScoped<IBillRepository, BillRepository>();
             #endregion
 
             #region regist Http Client
-            builder.Services.AddHttpClient<SalesClient>(c => c.BaseAddress = new Uri(builder.Configuration["sales_url"]!));
+            builder.Services.AddHttpClient<AcmeGwClient>(c => c.BaseAddress = new Uri(builder.Configuration["sales_url"]!));
             #endregion
+
+            builder.Services.AddTransient<CurrencyConverter>();
+            builder.Services.AddTransient<ITimeZoneConverter, IanaDatetimeConverter>();
 
             builder.Services.AddMapperBillingTypes();
 
@@ -83,11 +91,24 @@ namespace BillingApiTres
                         new string[] {}
                     }
                 });
+
+                options.OperationFilter<SwaggerCustomHeader>();
             });
 
             builder.Services.AddDbContext<IAMContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration["IamDbConnection"]);
+                options.EnableSensitiveDataLogging();
+            });
+            builder.Services.AddDbContext<SaleContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration["SaleDbConnection"]);
+                options.EnableSensitiveDataLogging();
+            });
+            builder.Services.AddDbContext<BillContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration["BillDbConnection"]);
+                options.EnableSensitiveDataLogging();
             });
 
 
@@ -105,6 +126,8 @@ namespace BillingApiTres
 
             app.UseHttpsRedirection();
             app.MapControllers();
+
+            app.UseTimezoneHeaderChecker();
 
             app.Run();
         }
