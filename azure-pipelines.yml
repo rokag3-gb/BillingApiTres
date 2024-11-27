@@ -14,6 +14,7 @@ variables:
   latestTag: "latest"  
   docsSrcPath: '$(Build.SourcesDirectory)/SDTeam-Docs'
   projPath: '$(Build.SourcesDirectory)/BillingApiTres/BillingApiTres'
+  vmImageName: 'ubuntu-latest'
   ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
     containerRegistry: 'billingapitresdev.azurecr.io'
     azureSubscriptionId: 'MSFT_Azure_Sponsorship_Gold'
