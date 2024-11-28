@@ -74,7 +74,7 @@ namespace BillingApiTres.Controllers.Bills
                 {
                     opt.AfterMap((o, br) =>
                     {
-                        var currencyInfo = currencyInfos.FirstOrDefault(c => c.CurrencyCode == b.CurrencyCode);
+                        var currencyInfo = currencyInfos.FirstOrDefault(c => c?.CurrencyCode == b.CurrencyCode);
 
                         br.SellerAccountName = accounts?.FirstOrDefault(a => a.AccountId == b.SellerAccountId)?.AccountName ?? string.Empty;
                         br.BuyerAccountId = usedAccountKeys?.FirstOrDefault(a => a.AccountId == b.BuyerAccountId)?.AccountKey1 ?? string.Empty;
