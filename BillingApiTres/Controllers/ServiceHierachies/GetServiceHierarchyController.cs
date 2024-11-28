@@ -44,6 +44,13 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             if (response.ParentAccId > 0)
                 parentAccount = await gwClient.Get<SalesAccount>($"sales/account/{response.ParentAccId}", token?.RawData!);
             var account = await gwClient.Get<SalesAccount>($"sales/account/{response.AccountId}", token?.RawData!);
+
+            if (account == null)
+            {
+                logger.LogError($"대상 Account가 존재하지 않습니다 - ServiceHierarchy.AccountId : {response.AccountId}");
+                return NotFound(new { serialNo = serialNo });
+            }
+
             var list = new List<SalesAccount> { parentAccount ?? new(), account };
 
             parentAccount.AccountId = 0;
@@ -127,6 +134,8 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             var accounts = await gwClient
                 .Get<List<SalesAccount>>($"sales/account?limit=999999&accountIds={string.Join(",", ids)}",
                                          token?.RawData!);
+            var accountIds = accounts.Select(a => a.AccountId).ToHashSet();
+            list = list.Where(sh => accountIds.Contains(sh.AccountId)).ToList();
 
             var accountLinks = await gwClient
                 .Get<List<AccountLink>>($"sales/accountLink?limit=999999&offset=0&accountIdCsv={string.Join(",", list.Select(a => a.AccountId))}",
