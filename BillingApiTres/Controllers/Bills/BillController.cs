@@ -28,15 +28,10 @@ namespace BillingApiTres.Controllers.Bills
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
             var tz = HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
 
-            //get account id
-            var accountKeys = await accountKeyRepository.GetIdList(request.AccountIds);
-            var accountIds = accountKeys.Select(a => a.AccountId).ToList();
-            //var accounts = await gwClient.Get<List<SalesAccount>>($"sales/account?limit=999999&accountIds={string.Join(",", accountIds)}", token?.RawData!);
-
             //get bills
             var bills = billRepository.GetRange(timeZoneConverter.ConvertToUtc(request.From, tz!),
                                                 timeZoneConverter.ConvertToUtc(request.To, tz!),
-                                                accountIds,
+                                                request.AccountIds,
                                                 request.Offset,
                                                 request.limit);
 
@@ -66,7 +61,6 @@ namespace BillingApiTres.Controllers.Bills
             //get accounts
             var usedAccountIds = bills.SelectMany(b => new[] { b.SellerAccountId, b.BuyerAccountId, b.ConsumptionAccountId }).Distinct().Where(a => a != null).Cast<long>();
             var accounts = await gwClient.Get<List<SalesAccount>>($"sales/account?limit=999999&accountIds={string.Join(",", usedAccountIds)}", token?.RawData!);
-            var usedAccountKeys = await accountKeyRepository.GetKeyList(usedAccountIds.ToList());
 
             var response = bills.Select(b =>
             {
@@ -77,9 +71,9 @@ namespace BillingApiTres.Controllers.Bills
                         var currencyInfo = currencyInfos.FirstOrDefault(c => c?.CurrencyCode == b.CurrencyCode);
 
                         br.SellerAccountName = accounts?.FirstOrDefault(a => a.AccountId == b.SellerAccountId)?.AccountName ?? string.Empty;
-                        br.BuyerAccountId = usedAccountKeys?.FirstOrDefault(a => a.AccountId == b.BuyerAccountId)?.AccountKey1 ?? string.Empty;
+                        //br.BuyerAccountId = usedAccountKeys?.FirstOrDefault(a => a.AccountId == b.BuyerAccountId)?.AccountKey1 ?? string.Empty;
                         br.BuyerAccountName = accounts?.FirstOrDefault(a => a.AccountId == b.BuyerAccountId)?.AccountName ?? string.Empty;
-                        br.ConsumptionAccountId = usedAccountKeys?.FirstOrDefault(a => a.AccountId == b.ConsumptionAccountId)?.AccountKey1 ?? string.Empty;
+                        //br.ConsumptionAccountId = usedAccountKeys?.FirstOrDefault(a => a.AccountId == b.ConsumptionAccountId)?.AccountKey1 ?? string.Empty;
                         br.ConsumptionAccountName = accounts?.FirstOrDefault(a => a.AccountId == b.ConsumptionAccountId)?.AccountName ?? string.Empty;
                         br.StatusName = codes?.FirstOrDefault(c => c.Code == b.StatusCode)?.Name ?? string.Empty;
                         br.CurrencyName = currencyInfo?.CurrencyEnglishName ?? string.Empty;
