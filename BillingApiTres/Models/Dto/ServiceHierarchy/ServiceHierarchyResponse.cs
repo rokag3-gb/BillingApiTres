@@ -14,17 +14,11 @@ namespace BillingApiTres.Models.Dto
         public string TenantId { get; set; }
         //[SourceMember(nameof(ServiceHierarchy.Tenant.RealmName))]
         public string RealmName { get; set; }
-        [JsonIgnore]
         [SourceMember(nameof(ServiceHierarchy.ParentAccId))]
         public long ContractorId { get; set; }
-        [JsonPropertyName("contractorId")]
-        public string ContractorKey { get; set; }
         public string? ContractorName { get; set; }
-        [JsonIgnore]
         [SourceMember(nameof(ServiceHierarchy.AccountId))]
         public long ContracteeId { get; set; }
-        [JsonPropertyName("contracteeId")]
-        public string ContracteeKey { get; set; }
         public string ContracteeName { get; set; }
         [SourceMember(nameof(ServiceHierarchy.IsActive))]
         public bool IsActive { get; set; }

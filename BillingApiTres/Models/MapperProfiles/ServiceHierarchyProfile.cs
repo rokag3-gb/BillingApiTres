@@ -30,10 +30,8 @@ namespace BillingApiTres.Models.MapperProfiles
             destination.SerialNo = source.Sno;
             destination.RealmName = source.Tenant.RealmName;
             destination.ContractorId = source.ParentAccId;
-            destination.ContractorKey = MapAccountKey(source.ParentAccId, context);
             destination.ContractorName = MapAccountName(source.ParentAccId, context);
             destination.ContracteeId = source.AccountId;
-            destination.ContracteeKey = MapAccountKey(source.AccountId, context);
             destination.ContracteeName = MapAccountName(source.AccountId, context);
             destination.IsActive = source.IsActive;
             destination.ContractDate = ConvertToLocalTime(source.StartDate, context);
@@ -41,25 +39,6 @@ namespace BillingApiTres.Models.MapperProfiles
             destination.Configs = context.Mapper.Map<ICollection<ServiceHierarchyConfigResponse>>(source.ServiceHierarchyConfigs);
             destination.AccountLinkCount = MapAccountLinkCount(source.AccountId, context);
             destination.AccountUserCount = MapAccountUserCount(source.AccountId, context);
-        }
-
-        private string MapAccountKey(long accountId, ResolutionContext context)
-        {
-            object? accountKeyObj = default;
-
-            if (context.TryGetItems(out var items) == false)
-                return "";
-            if (items.TryGetValue("accountKeys", out accountKeyObj) == false)
-                return "";
-            if ((accountKeyObj is List<AccountKey>) == false)
-                return "";
-
-            var accountKeys = accountKeyObj as List<AccountKey>;
-#if DEBUG
-            return accountKeys?.Where(ak => ak?.AccountId == accountId)?.FirstOrDefault()?.AccountKey1 + $"({accountId})" ?? "";
-#else
-            return accountKeys?.Where(ak => ak?.AccountId == accountId)?.FirstOrDefault()?.AccountKey1 ?? "";
-#endif
         }
 
         private string MapAccountName(long accountId, ResolutionContext context)
