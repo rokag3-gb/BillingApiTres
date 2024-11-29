@@ -135,7 +135,9 @@ namespace BillingApiTres.Controllers.ServiceHierachies
                 .Get<List<SalesAccount>>($"sales/account?limit=999999&accountIds={string.Join(",", ids)}",
                                          token?.RawData!);
             var accountIds = accounts.Select(a => a.AccountId).ToHashSet();
-            list = list.Where(sh => accountIds.Contains(sh.AccountId)).ToList();
+            list = list.Where(sh => accountIds.Contains(sh.AccountId))
+                       .Where(sh => sh.ParentAccId == 0 || accountIds.Contains(sh.ParentAccId))
+                       .ToList();
 
             var accountLinks = await gwClient
                 .Get<List<AccountLink>>($"sales/accountLink?limit=999999&offset=0&accountIdCsv={string.Join(",", list.Select(a => a.AccountId))}",
