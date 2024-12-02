@@ -92,7 +92,9 @@ namespace BillingApiTres
                     }
                 });
 
+#if DEBUG
                 options.OperationFilter<SwaggerCustomHeader>();
+#endif
             });
 
             builder.Services.AddDbContext<IAMContext>(options =>
@@ -128,6 +130,7 @@ namespace BillingApiTres
             app.MapControllers();
 
             app.UseTimezoneHeaderChecker();
+            app.UseAccountHeaderChecker();
 
             app.Run();
         }
