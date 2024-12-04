@@ -3,6 +3,7 @@ using Billing.Data.Interfaces;
 using BillingApiTres.Converters;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
+using BillingApiTres.Models.Validations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +20,7 @@ namespace BillingApiTres.Controllers.Bills
                                 CurrencyConverter currencyConverter,
                                 ILogger<BillController> logger) : ControllerBase
     {
+        [AuthorizeAccountIdFilter([nameof(request.AccountIds)])]
         [HttpGet("/bills")]
         public async Task<ActionResult<List<BillResponse>>> GetList([FromQuery] BillListRequest request)
         {
