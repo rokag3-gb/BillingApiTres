@@ -5,11 +5,14 @@ using Billing.Data.Models.Sale;
 using BillingApiTres.Converters;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
+using BillingApiTres.Models.Validations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualBasic;
+using System.Collections.Immutable;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Authentication;
 
 namespace BillingApiTres.Controllers.ServiceHierachies
 {
@@ -34,9 +37,14 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         [HttpGet("/service-organizations/{serialNo}")]
         public async Task<ActionResult<ServiceHierarchyResponse>> Get(long serialNo)
         {
+            var accountIds = HttpContext.Items[config["AccountHeader"]!] as ImmutableHashSet<long>;
+
             var response = await serviceHierachyRepository.Get(serialNo);
             if (response == null)
                 return NotFound(new { serialNo = serialNo });
+
+            if (accountIds?.Contains(response.AccountId) == false)
+                return Forbid();
 
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
 
@@ -68,6 +76,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             });
         }
 
+        [AuthorizeAccountIdFilter([nameof(accountId)])]
         [HttpGet("/service-organizations/{accountId}/hierarchy")]
         public async Task<ActionResult<List<ServiceHierarchyResponse>>> GetList(long accountId)
         {

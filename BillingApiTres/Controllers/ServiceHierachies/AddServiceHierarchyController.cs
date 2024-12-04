@@ -6,6 +6,7 @@ using BillingApiTres.Controllers.Tenants;
 using BillingApiTres.Converters;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
+using BillingApiTres.Models.Validations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Client;
@@ -25,6 +26,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         ITimeZoneConverter timeZoneConverter,
         ILogger<AddServiceHierarchyController> logger) : ControllerBase
     {
+        [AuthorizeAccountIdFilter([nameof(ServiceHierarchyAddRequest.ContractorId), nameof(ServiceHierarchyAddRequest.ContracteeId)])]
         [HttpPost("/service-organizations")]
         public async Task<ActionResult<ServiceHierarchyResponse>> Add(
             [FromBody]ServiceHierarchyAddRequest addRequest)
