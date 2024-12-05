@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualBasic;
+using Newtonsoft.Json.Linq;
 using System.Collections.Immutable;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Authentication;
@@ -119,6 +120,24 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             {
                 return await MapResponse(new List<ServiceHierarchy> { parent }, token);
             }
+        }
+
+        [HttpGet("/service-organizations/noncontracts")]
+        public async Task<ActionResult<List<SalesAccount>>> GetNoncontractAccounts(
+            [FromQuery] NonContractAccountRequest request)
+        {
+            var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
+
+            var allContracts = await serviceHierachyRepository.All(request.Offset, request.Limit);
+            var allContractedIds = allContracts.Select(a => a.AccountId);
+
+            var accounts = await gwClient
+                .Get<List<SalesAccount>>($"sales/account?limit=999999",
+                                         token?.RawData!);
+
+            accounts.RemoveAll(a => allContractedIds.Contains(a.AccountId));
+
+            return accounts;
         }
 
         private async Task<List<ServiceHierarchyResponse>> MapResponse(List<ServiceHierarchy> list, JwtSecurityToken token)

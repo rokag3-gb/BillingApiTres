@@ -79,5 +79,15 @@ namespace Billing.EF.Repositories
             iamContext.Remove(entity);
             await iamContext.SaveChangesAsync();
         }
+
+        public async Task<List<ServiceHierarchy>> All(int? offset, int? limit)
+        {
+            var query = iamContext.ServiceHierarchies.AsQueryable();
+
+            if (offset.HasValue && limit.HasValue)
+                query = query.Skip(offset.Value).Take(limit.Value);
+
+            return await query.ToListAsync();
+        }
     }
 }
