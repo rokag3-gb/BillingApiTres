@@ -8,69 +8,137 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Billing.Data.Models.Bill;
 
+/// <summary>
+/// 청구서 마스터 테이블
+/// </summary>
 [Table("Bill")]
 [Index("BillDate", Name = "idx_Bill_BillDate")]
 public partial class Bill
 {
+    /// <summary>
+    /// 청구번호
+    /// </summary>
     [Key]
     public long BillId { get; set; }
 
+    /// <summary>
+    /// 청구일(UTC)
+    /// </summary>
     [Column(TypeName = "datetime")]
     public DateTime BillDate { get; set; }
 
+    /// <summary>
+    /// 공급자 AccountId
+    /// </summary>
     public long SellerAccountId { get; set; }
 
+    /// <summary>
+    /// 공급자 Account 담당자
+    /// </summary>
     [StringLength(50)]
     [Unicode(false)]
     public string? SellerManagerId { get; set; }
 
+    /// <summary>
+    /// 공급받는자 AccountId
+    /// </summary>
     public long BuyerAccountId { get; set; }
 
+    /// <summary>
+    /// 공급받는자 Account 담당자
+    /// </summary>
     [StringLength(50)]
     [Unicode(false)]
     public string? BuyerManagerId { get; set; }
 
+    /// <summary>
+    /// 청구서 상태코드 E.g., draft, fixed, public
+    /// </summary>
     [StringLength(7)]
     [Unicode(false)]
     public string StatusCode { get; set; } = null!;
 
+    /// <summary>
+    /// nullable. 클라우드 사용 시작일(UTC)
+    /// </summary>
     public long? ConsumptionAccountId { get; set; }
 
+    /// <summary>
+    /// nullable. 클라우드 사용 종료일(UTC)
+    /// </summary>
     [Column(TypeName = "datetime")]
     public DateTime? ConsumptionStartDate { get; set; }
 
+    /// <summary>
+    /// 클라우드 사용 고객사
+    /// </summary>
     [Column(TypeName = "datetime")]
     public DateTime? ConsumptionEndDate { get; set; }
 
+    /// <summary>
+    /// 클라우드 사용액
+    /// </summary>
     [Column(TypeName = "money")]
     public decimal ConsumptionAmount { get; set; }
 
+    /// <summary>
+    /// 할인액
+    /// </summary>
     [Column(TypeName = "money")]
     public decimal DiscountAmount { get; set; }
 
+    /// <summary>
+    /// 추가청구액
+    /// </summary>
     [Column(TypeName = "money")]
     public decimal ExtraAmount { get; set; }
 
+    /// <summary>
+    /// 공급가액
+    /// </summary>
     [Column(TypeName = "money")]
     public decimal Amount { get; set; }
 
+    /// <summary>
+    /// 세액
+    /// </summary>
     [Column(TypeName = "money")]
     public decimal Tax { get; set; }
 
+    /// <summary>
+    /// 공급대가 (공급가액+세액)
+    /// </summary>
     [Column(TypeName = "money")]
     public decimal? TotalAmount { get; set; }
 
+    /// <summary>
+    /// 청구통화코드 #CUR (E.g., KRW, JPY)
+    /// </summary>
     [StringLength(7)]
     [Unicode(false)]
     public string CurrencyCode { get; set; } = null!;
 
+    /// <summary>
+    /// 비고
+    /// </summary>
     [StringLength(1000)]
     public string? Remark { get; set; }
 
+    /// <summary>
+    /// Default: current_timestamp
+    /// </summary>
     [Column(TypeName = "datetime")]
     public DateTime SavedAt { get; set; }
 
     [StringLength(50)]
     [Unicode(false)]
     public string? SaverId { get; set; }
+
+    [Column("BillMonthKST")]
+    [StringLength(6)]
+    [Unicode(false)]
+    public string? BillMonthKst { get; set; }
+
+    [InverseProperty("Bill")]
+    public virtual ICollection<BillItem> BillItems { get; set; } = new List<BillItem>();
 }
