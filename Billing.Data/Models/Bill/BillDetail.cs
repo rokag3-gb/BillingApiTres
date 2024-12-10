@@ -40,4 +40,8 @@ public partial class BillDetail
     [StringLength(500)]
     [Unicode(false)]
     public string KeyId { get; set; } = null!;
+
+    [ForeignKey("BillItemId")]
+    [InverseProperty("BillDetails")]
+    public virtual BillItem BillItem { get; set; } = null!;
 }

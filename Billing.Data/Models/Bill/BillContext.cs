@@ -71,6 +71,10 @@ public partial class BillContext : DbContext
             entity.Property(e => e.BillItemId).HasComment("청구품목번호");
             entity.Property(e => e.KeyId).HasComment("demandMonth-zone-account-memberNo");
             entity.Property(e => e.VendorCode).HasComment("#VEN 벤더코드");
+
+            entity.HasOne(d => d.BillItem).WithMany(p => p.BillDetails)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BillDetail_BillItem");
         });
 
         modelBuilder.Entity<BillItem>(entity =>

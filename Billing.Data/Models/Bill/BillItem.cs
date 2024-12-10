@@ -61,6 +61,9 @@ public partial class BillItem
     [InverseProperty("BillItems")]
     public virtual Bill Bill { get; set; } = null!;
 
+    [InverseProperty("BillItem")]
+    public virtual ICollection<BillDetail> BillDetails { get; set; } = new List<BillDetail>();
+
     [ForeignKey("ProductId")]
     [InverseProperty("BillItems")]
     public virtual Product? Product { get; set; }
