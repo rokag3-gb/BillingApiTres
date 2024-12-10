@@ -1,6 +1,5 @@
 ﻿using BillingApiTres.Models.Dto;
 using BillingApiTres.Models.MapperProfiles;
-using System.Runtime.CompilerServices;
 
 namespace BillingApiTres
 {
@@ -12,6 +11,7 @@ namespace BillingApiTres
             collection.AddAutoMapper(config =>
             {
                 config.AddProfile(typeof(ServiceHierarchyProfile));
+                config.AddProfile(typeof(BillDetailProfile));
             });
             return collection;
         }

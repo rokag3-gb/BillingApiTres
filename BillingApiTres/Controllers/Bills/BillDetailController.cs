@@ -11,6 +11,7 @@ namespace BillingApiTres.Controllers.Bills
     [Route("[controller]")]
     [Authorize]
     public class BillDetailController(IBillDetailRepository billItemRepository,
+                                      IMapper mapper,
                                       IConfiguration config) : ControllerBase
     {
         [HttpGet("/bills/{billId}/billDetails")]
@@ -28,18 +29,7 @@ namespace BillingApiTres.Controllers.Bills
             if (availableAccountIds?.Contains(accountId ?? -1) == false)
                 return Forbid();
 
-            var ncpDetails = billDetails.SelectMany(bd => bd.NcpDetails)
-                .Select(n => new BillDetailResponse
-                {
-                    BillId = n.BillDetail.BillItem.BillId,
-                    BillItemId = n.BillDetail.BillItem.BillItemId,
-                    BillDetailId = n.BillDetail.BillDetailId,
-                    KeyId = n.KeyId,
-                    DetailLineId = n.DetailLineId,
-                    DemandType = n.DemandTypeCodeName,
-                    DemandTypeDetail = n.DemandTypeDetailCodeName,
-                    UnitUsageQuantity = n.UnitUsageQuantity
-                });
+            var ncpDetails = billDetails.SelectMany(bd => bd.NcpDetails);
 
             var allDetails = ncpDetails;
 
@@ -58,7 +48,16 @@ namespace BillingApiTres.Controllers.Bills
             //    });
             //var allDetails = ncpDetails.Concat(awsDetails);
 
-            return new PaginationResponse<BillDetailResponse>(allDetails,
+            var response = allDetails.Select(d => mapper.Map<BillDetailResponse>(d, opt =>
+            {
+                opt.AfterMap((o, r) =>
+                {
+                    r.BillId = d.BillDetail.BillItem.BillId;
+                    r.BillItemId = d.BillDetail.BillItemId;
+                    r.BillDetailId = d.BillDetail.BillDetailId;
+                });
+            }));
+            return new PaginationResponse<BillDetailResponse>(response,
                                                               allDetails.Count(),
                                                               request.Offset,
                                                               request.Limit);
