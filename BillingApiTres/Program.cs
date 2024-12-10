@@ -32,6 +32,7 @@ namespace BillingApiTres
             builder.Services.AddScoped<IAccountKeyRepository, AccountKeyRepository>();
             builder.Services.AddScoped<IBillRepository, BillRepository>();
             builder.Services.AddScoped<IBillDetailRepository, BillDetailRepository>();
+            builder.Services.AddScoped<IBillItemRepository, BillItemRepository>();
             #endregion
 
             #region regist Http Client
