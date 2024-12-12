@@ -23,10 +23,14 @@ namespace BillingApiTres.Controllers.Bills
             if (billDetails.Any() == false)
                 return NotFound(new { BillId = billId });
 
-            var accountId = billDetails.FirstOrDefault()?.BillItem?.Bill?.SellerAccountId;
+            var accountId = new[] 
+            { 
+                billDetails.FirstOrDefault()?.BillItem?.Bill?.SellerAccountId, 
+                billDetails.FirstOrDefault()?.BillItem?.Bill?.BuyerAccountId 
+            };
             var availableAccountIds = HttpContext.Items[config["AccountHeader"]!] as ImmutableHashSet<long>;
 
-            if (availableAccountIds?.Contains(accountId ?? -1) == false)
+            if (availableAccountIds?.Any(a => accountId.Contains(a)) == false)
                 return Forbid();
 
             var ncpDetails = billDetails.SelectMany(bd => bd.NcpDetails);
