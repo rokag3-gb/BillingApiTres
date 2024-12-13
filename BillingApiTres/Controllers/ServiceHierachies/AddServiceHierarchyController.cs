@@ -26,7 +26,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         ITimeZoneConverter timeZoneConverter,
         ILogger<AddServiceHierarchyController> logger) : ControllerBase
     {
-        [AuthorizeAccountIdFilter([nameof(ServiceHierarchyAddRequest.ContractorId), nameof(ServiceHierarchyAddRequest.ContracteeId)])]
+        [AuthorizeAccountIdFilter([nameof(ServiceHierarchyAddRequest.ContractorId)])]
         [HttpPost("/service-organizations")]
         public async Task<ActionResult<ServiceHierarchyResponse>> Add(
             [FromBody]ServiceHierarchyAddRequest addRequest)
