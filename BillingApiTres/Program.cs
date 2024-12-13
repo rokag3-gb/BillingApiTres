@@ -4,6 +4,7 @@ using Billing.Data.Models.Bill;
 using Billing.Data.Models.Sale;
 using Billing.EF.Repositories;
 using BillingApiTres.Converters;
+using BillingApiTres.Helper;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -14,6 +15,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;
+using System.Text.Json.Serialization;
 
 
 [assembly: ApiController]
@@ -59,12 +61,18 @@ namespace BillingApiTres
                     };
                 });
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "Billing3", Version = "v1" });
+                options.SchemaFilter<EnumSchemaSwaggerFilter>();
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "BillingApiTres.xml"));
 
                 var securityScheme = new OpenApiSecurityScheme
@@ -90,14 +98,14 @@ namespace BillingApiTres
                                 Type = ReferenceType.SecurityScheme,
                                 Id = "Bearer"
                             }
-                        }, 
+                        },
                         new string[] {}
                     }
                 });
 
-//#if DEBUG
+                //#if DEBUG
                 options.OperationFilter<SwaggerCustomHeader>();
-//#endif
+                //#endif
             });
 
             builder.Services.AddDbContext<IAMContext>(options =>
