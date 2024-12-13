@@ -19,6 +19,8 @@ public partial class BillContext : DbContext
 
     public virtual DbSet<BillItem> BillItems { get; set; }
 
+    public virtual DbSet<BillingRole> BillingRoles { get; set; }
+
     public virtual DbSet<NcpDetail> NcpDetails { get; set; }
 
     public virtual DbSet<NcpMaster> NcpMasters { get; set; }
@@ -96,6 +98,15 @@ public partial class BillContext : DbContext
                 .HasConstraintName("FK_BillItem_BillId");
 
             entity.HasOne(d => d.Product).WithMany(p => p.BillItems).HasConstraintName("FK_BillItem_ProductId");
+        });
+
+        modelBuilder.Entity<BillingRole>(entity =>
+        {
+            entity.HasKey(e => e.Sno).IsClustered(false);
+
+            entity.HasIndex(e => e.RoleId, "Idx_unique_BillingRole_RoleId")
+                .IsUnique()
+                .IsClustered();
         });
 
         modelBuilder.Entity<NcpDetail>(entity =>
