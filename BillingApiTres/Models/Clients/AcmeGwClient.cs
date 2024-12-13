@@ -79,5 +79,8 @@ namespace BillingApiTres.Models.Clients
     {
         [JsonPropertyName("accountId")]
         public long AccountId { get; set; }
+
+        [JsonPropertyName("linkKey")]
+        public string LinkKey { get; set; }
     }
 }
