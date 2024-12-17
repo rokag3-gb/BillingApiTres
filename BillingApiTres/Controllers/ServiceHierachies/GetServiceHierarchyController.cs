@@ -39,7 +39,9 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             if (response == null)
                 return NotFound(new { serialNo = serialNo });
 
-            if (accountIds?.Contains(response.AccountId) == false)
+            var requestAccountIds = new[] { response.AccountId, response.ParentAccId };
+
+            if (accountIds?.Any(id => requestAccountIds.Contains(id)) == false)
                 return Forbid();
 
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
