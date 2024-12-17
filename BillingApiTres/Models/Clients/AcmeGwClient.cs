@@ -1,12 +1,12 @@
 ﻿using System.Net.Http.Headers;
-using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Diagnostics.Eventing.Reader;
 
 namespace BillingApiTres.Models.Clients
 {
-    public class AcmeGwClient(HttpClient httpClient, ILogger<AcmeGwClient> logger)
+    public class AcmeGwClient(HttpClient httpClient,
+                              ServiceAccountTokenClient serviceAccountTokenClient,
+                              ILogger<AcmeGwClient> logger)
     {
         private readonly string _resource = "sales";
 
@@ -41,6 +41,42 @@ namespace BillingApiTres.Models.Clients
             {
                 logger.LogError(ex, $"지정된 형식{typeof(T).ToString()}로 역직렬화하지 못했습니다.");
                 return default!;
+            }
+        }
+
+        /// <summary>
+        /// service account를 사용하여 직렬화 문자열을 반환하는 Get 동작을 수행합니다.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<string> GetSerializedString(string uri, HttpMethod httpMethod, JsonContent? jsonContent = null)
+        {
+            var combinedUri = string.Join("/", new[] { httpClient.BaseAddress?.ToString().TrimEnd('/') }.Concat(new[] { uri }.Select(s => s.Trim('/'))));
+
+            using var request = new HttpRequestMessage(httpMethod, new Uri(combinedUri));
+            if (jsonContent != null)
+                request.Content = jsonContent;
+            var serviceAccountToken = await serviceAccountTokenClient.GetToken();
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", serviceAccountToken);
+
+            var response = await httpClient.SendAsync(request, CancellationToken.None);
+
+            try
+            {
+                response.EnsureSuccessStatusCode();
+                using var responseStream = await response.Content.ReadAsStreamAsync();
+
+                StreamReader sr = new StreamReader(responseStream);
+                return await sr.ReadToEndAsync();
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.LogError(ex, $"외부 API({combinedUri})에서 값을 가져오지 못했습니다.");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"외부 API({combinedUri}) 요청 오류");
+                throw;
             }
         }
     }
