@@ -3,6 +3,7 @@ using Billing.Data.Models.Iam;
 using BillingApiTres.Converters;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
+using Microsoft.Identity.Client;
 
 namespace BillingApiTres.Models.MapperProfiles
 {
@@ -38,6 +39,8 @@ namespace BillingApiTres.Models.MapperProfiles
             destination.Configs = context.Mapper.Map<ICollection<ServiceHierarchyConfigResponse>>(source.ServiceHierarchyConfigs);
             destination.AccountLinkCount = MapAccountLinkCount(source.AccountId, context);
             destination.AccountUserCount = MapAccountUserCount(source.AccountId, context);
+            destination.Type = source.TypeCode;
+            destination.TypeName = MapTypeName(source.TypeCode, context);
         }
 
         private string MapAccountName(long accountId, ResolutionContext context)
@@ -94,6 +97,23 @@ namespace BillingApiTres.Models.MapperProfiles
 
             var accountLink = accountLinkObj as List<AccountLink>;
             return accountLink?.Where(al => al.AccountId == accountId).Count() ?? 0;
+        }
+
+        private string? MapTypeName(string? code, ResolutionContext c)
+        {
+            object? typeObj = default;
+
+            if (string.IsNullOrEmpty(code) || string.IsNullOrWhiteSpace(code))
+                return string.Empty;
+            if (c.TryGetItems(out var items) == false)
+                return string.Empty;
+            if (items.TryGetValue("type", out typeObj) == false)
+                return string.Empty;
+            if ((typeObj is List<SaleCode>) == false)
+                return string.Empty;
+
+            var typeCode = typeObj as List<SaleCode>;
+            return typeCode?.FirstOrDefault(c => c.Code == code)?.Name;
         }
     }
 }

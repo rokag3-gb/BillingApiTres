@@ -27,6 +27,9 @@ namespace BillingApiTres.Models.Dto
         public DateTime ExpireDate { get; set; }
         [SourceMember(nameof(ServiceHierarchy.ServiceHierarchyConfigs))]
         public ICollection<ServiceHierarchyConfigResponse>? Configs { get; set; }
+        [SourceMember(nameof(ServiceHierarchy.TypeCode))]
+        public string? Type { get; set; }
+        public string? TypeName { get; set; }
         public int AccountUserCount { get; set; }
         public int AccountLinkCount { get; set; }
     }

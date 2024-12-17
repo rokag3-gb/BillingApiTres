@@ -63,6 +63,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
 
             var accountLinks = await gwClient.Get<List<AccountLink>>($"sales/accountLink?limit=999999&offset=0&accountIdCsv={account.AccountId}", token?.RawData!);
             var accountUsers = await gwClient.Get<List<AccountUser>>($"sales/accountUser?limit=999999&offset=0&accountIdCsv={account.AccountId}", token?.RawData!);
+            var typeCodes = await gwClient.Get<List<SaleCode>>($"sales/code/SHT/childs", token?.RawData!);
 
             return mapper.Map<ServiceHierarchyResponse>(response, options =>
             {
@@ -71,6 +72,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
                 options.Items["accountUser"] = accountUsers;
                 options.Items["timezone"] =
                     HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
+                options.Items["type"] = typeCodes;
             });
         }
 
@@ -156,6 +158,8 @@ namespace BillingApiTres.Controllers.ServiceHierachies
                 .Get<List<AccountUser>>($"sales/accountUser?limit=999999&offset=0&accountIdCsv={string.Join(",", list.Select(a => a.AccountId))}",
                                         token?.RawData!);
 
+            var typeCodes = await gwClient.Get<List<SaleCode>>($"sales/code/SHT/childs", token?.RawData!);
+
             return mapper.Map<List<ServiceHierarchyResponse>>(list, opt =>
             {
                 opt.Items["accounts"] = accounts;
@@ -163,6 +167,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
                 opt.Items["accountUser"] = accountUsers;
                 opt.Items["timezone"] = 
                     HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
+                opt.Items["type"] = typeCodes;
             });
         }
     }

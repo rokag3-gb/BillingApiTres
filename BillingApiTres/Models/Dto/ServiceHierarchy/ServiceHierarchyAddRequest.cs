@@ -36,5 +36,8 @@ namespace BillingApiTres.Models.Dto
 
         [SourceMember(nameof(ServiceHierarchy.ServiceHierarchyConfigs))]
         public ICollection<ServiceHierarchyConfigAddRequest>? Configs { get; set; }
+
+        [SourceMember(nameof(ServiceHierarchy.TypeCode))]
+        public string? Type { get; set; }
     }
 }
