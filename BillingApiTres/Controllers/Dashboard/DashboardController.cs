@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using BillingApiTres.Extensions;
 using Billing.Data.Models.Bill;
 using System.Collections.Generic;
+using BillingApiTres.Models.Clients;
 
 namespace BillingApiTres.Controllers.Dashboard
 {
@@ -16,7 +17,8 @@ namespace BillingApiTres.Controllers.Dashboard
                                      ILogger<DashboardController> logger,
                                      IMapper mapper,
                                      IConfiguration config,
-                                     ITimeZoneConverter timeZoneConverter) : ControllerBase
+                                     ITimeZoneConverter timeZoneConverter,
+                                     AcmeGwClient gwClient) : ControllerBase
     {
         /// <summary>
         /// 요청 월 기준 최근 3개월 청구액 합산을 요청합니다
@@ -92,6 +94,59 @@ namespace BillingApiTres.Controllers.Dashboard
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// 최근 12개월의 회사별 청구액 합산을 반환합니다
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpGet("/RecentTwelveMonth")]
+        public async Task<ActionResult<List<RecentTwelveMonthResponse>>> RecentTwelveMonth(
+            [FromQuery] RecentTwelveMonthRequest request)
+        {
+            var tz = HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
+
+            var requestFrom = new DateTime(request.RequestDate.Year,
+                                           request.RequestDate.Month,
+                                           1, 0, 0, 0).AddMonths(-3);
+
+            var requestTo = new DateTime(request.RequestDate.Year,
+                                         request.RequestDate.Month,
+                                         DateTime.DaysInMonth(request.RequestDate.Year, request.RequestDate.Month),
+                                         23, 59, 59);
+            requestFrom = timeZoneConverter.ConvertToUtc(requestFrom, tz!);
+            requestTo = timeZoneConverter.ConvertToUtc(requestTo, tz!);
+
+            var accountIds = request.AccountIdsCsv
+                .Split(",", StringSplitOptions.TrimEntries)
+                .Select(s =>
+                {
+                    if (long.TryParse(s, out long id))
+                        return id;
+                    return -1;
+                })
+                .Where(i => i >= 1);
+
+            if (HttpContext.AuthenticateAccountId(accountIds) == false)
+                return Forbid();
+
+            var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
+            var accounts = await gwClient.Get<List<SalesAccount>>($"sales/account?limit=999999&accountIds={request.AccountIdsCsv}", token?.RawData!);
+
+            var datas = billRepository.GetRange(requestFrom, requestTo, accountIds.ToList(), null, null);
+
+            var group = datas.GroupBy(d => new { d.BillDate.Year, d.BillDate.Month, d.BuyerAccountId });
+
+            var result = group.Select(g => new RecentTwelveMonthResponse
+            {
+                Year = g.Key.Year,
+                Month = g.Key.Month,
+                AccountName = accounts.FirstOrDefault(a => a.AccountId == g.Key.BuyerAccountId)?.AccountName ?? g.Key.BuyerAccountId.ToString(),
+                Amount = g.Sum(b => b.Amount)
+            });
+
+            return result.ToList();
         }
     }
 }
