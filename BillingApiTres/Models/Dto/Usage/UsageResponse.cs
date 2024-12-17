@@ -49,6 +49,11 @@ namespace BillingApiTres.Models.Dto
         [SourceMember(nameof(NcpMaster.UseAmount))]
         public decimal useAmount { get; set; }
 
+        [SourceMember(nameof(NcpMaster.ThisMonthPartnerAppliedExchangeRate))]
+        public decimal thisMonthPartnerAppliedExchangeRate { get; set; }
+
+        public decimal useAmountKrw => useAmount * thisMonthPartnerAppliedExchangeRate;
+
         /// <summary>
         /// 통화 기호
         /// </summary>

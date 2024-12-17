@@ -91,7 +91,7 @@ namespace BillingApiTres.Controllers.Usage
                 DateString = g.Key,
                 Usage = new Models.Dto.Usage
                 {
-                    TotalCharge = g.Sum(i => i.UseAmount ?? 0),
+                    TotalCharge = g.Sum(i => i.UseAmount * Convert.ToDecimal(i.ThisMonthPartnerAppliedExchangeRate) ?? 0),
                     Charges = g.Select(i => mapper.Map<Charge>(i, opt =>
                     {
                         opt.AfterMap((o, c) =>

@@ -40,7 +40,7 @@ namespace BillingApiTres
             #endregion
 
             #region regist Http Client
-            builder.Services.AddHttpClient<AcmeGwClient>(c => c.BaseAddress = new Uri(builder.Configuration["sales_url"]!));
+            builder.Services.AddHttpClient<AcmeGwClient>(c => c.BaseAddress = new Uri(builder.Configuration["gateway_url"]!));
             #endregion
 
             builder.Services.AddTransient<CurrencyConverter>();
