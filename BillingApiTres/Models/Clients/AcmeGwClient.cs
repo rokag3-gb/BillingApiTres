@@ -83,4 +83,10 @@ namespace BillingApiTres.Models.Clients
         [JsonPropertyName("linkKey")]
         public string LinkKey { get; set; }
     }
+
+    public record GatewayToken
+    {
+        [JsonPropertyName("access_token")]
+        public string AccessToken { get; init; } = string.Empty;
+    }
 }

@@ -38,10 +38,15 @@ namespace BillingApiTres
 
             #region regist Http Client
             builder.Services.AddHttpClient<AcmeGwClient>(c => c.BaseAddress = new Uri(builder.Configuration["gateway_url"]!));
+            builder.Services.AddHttpClient<ServiceAccountTokenClient>(c => c.BaseAddress = new Uri(builder.Configuration["gateway_url"]!));
             #endregion
 
             builder.Services.AddTransient<CurrencyConverter>();
             builder.Services.AddTransient<ITimeZoneConverter, IanaDatetimeConverter>();
+            
+            builder.Services.AddSingleton<ServiceAccountTokenStorage>();
+            builder.Services.Configure<ServiceAccountRequestBody>(
+                builder.Configuration.GetSection("ServiceAccount"));
 
             builder.Services.AddMapperBillingTypes();
 
