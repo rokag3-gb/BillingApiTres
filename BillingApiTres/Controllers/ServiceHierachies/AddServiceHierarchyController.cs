@@ -1,17 +1,12 @@
 ﻿using AutoMapper;
 using Billing.Data.Interfaces;
-using Billing.Data.Models;
-using Billing.EF.Repositories;
-using BillingApiTres.Controllers.Tenants;
+using Billing.Data.Models.Iam;
 using BillingApiTres.Converters;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
 using BillingApiTres.Models.Validations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Identity.Client;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Principal;
 
 namespace BillingApiTres.Controllers.ServiceHierachies
 {

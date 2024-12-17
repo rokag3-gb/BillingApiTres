@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Azure;
 using Billing.Data.Interfaces;
+using Billing.Data.Models.Iam;
 using BillingApiTres.Converters;
 using BillingApiTres.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
@@ -46,7 +46,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
                 if (updateConfig.ConfigId is null || updateConfig.ConfigId == 0)
                 {
                     entity.ServiceHierarchyConfigs.Add(
-                        new Billing.Data.Models.ServiceHierarchyConfig
+                        new ServiceHierarchyConfig
                         {
                             Sno = entity.Sno,
                             ConfigCode = updateConfig.Code,

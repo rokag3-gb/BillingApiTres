@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Billing.Data.Models;
+namespace Billing.Data.Models.Iam;
 
 [Table("ServiceHierarchy")]
 public partial class ServiceHierarchy
@@ -36,6 +36,10 @@ public partial class ServiceHierarchy
     [StringLength(50)]
     [Unicode(false)]
     public string? SaverId { get; set; }
+
+    [StringLength(7)]
+    [Unicode(false)]
+    public string? TypeCode { get; set; }
 
     [InverseProperty("SnoNavigation")]
     public virtual ICollection<ServiceHierarchyConfig> ServiceHierarchyConfigs { get; set; } = new List<ServiceHierarchyConfig>();

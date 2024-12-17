@@ -1,5 +1,5 @@
 ﻿using Billing.Data.Interfaces;
-using Billing.Data.Models;
+using Billing.Data.Models.Iam;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;

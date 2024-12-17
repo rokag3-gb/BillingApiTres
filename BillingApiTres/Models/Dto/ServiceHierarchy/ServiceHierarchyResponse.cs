@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.Configuration.Annotations;
-using Billing.Data.Models;
-using System.Text.Json.Serialization;
+using Billing.Data.Models.Iam;
 
 namespace BillingApiTres.Models.Dto
 {

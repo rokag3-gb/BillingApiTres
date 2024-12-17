@@ -1,20 +1,17 @@
 ﻿using Billing.Data.Interfaces;
-using Billing.Data.Models;
 using Billing.Data.Models.Bill;
+using Billing.Data.Models.Iam;
 using Billing.Data.Models.Sale;
 using Billing.EF.Repositories;
 using BillingApiTres.Converters;
 using BillingApiTres.Helper;
 using BillingApiTres.Models.Clients;
-using BillingApiTres.Models.Dto;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json.Serialization;
 
 

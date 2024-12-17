@@ -1,4 +1,4 @@
-﻿using Billing.Data.Models;
+﻿using Billing.Data.Models.Iam;
 
 namespace Billing.Data.Interfaces
 {

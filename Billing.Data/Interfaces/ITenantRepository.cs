@@ -1,9 +1,4 @@
-﻿using Billing.Data.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Billing.Data.Models.Iam;
 
 namespace Billing.Data.Interfaces
 {

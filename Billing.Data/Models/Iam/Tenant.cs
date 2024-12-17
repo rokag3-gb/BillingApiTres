@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Billing.Data.Models;
+namespace Billing.Data.Models.Iam;
 
 [Table("Tenant")]
 [Index("RealmName", "OwnerId", Name = "IDX_Tenant_RealmName_OwnerId", IsUnique = true)]

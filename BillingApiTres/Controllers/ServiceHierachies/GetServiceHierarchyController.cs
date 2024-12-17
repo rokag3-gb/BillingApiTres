@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Billing.Data.Interfaces;
-using Billing.Data.Models;
+using Billing.Data.Models.Iam;
 using BillingApiTres.Converters;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
