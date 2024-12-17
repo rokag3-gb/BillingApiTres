@@ -15,6 +15,13 @@ namespace BillingApiTres.Controllers.Authority
                                      IConfiguration config,
                                      ILogger<AuthorityController> logger) : ControllerBase
     {
+        /// <summary>
+        /// 대상 유저에 특정 권한을 추가합니다
+        /// </summary>
+        /// <param name="userId">대상 유저 id</param>
+        /// <param name="tenantId">tenant id</param>
+        /// <param name="roleId">추가 권한 id</param>
+        /// <returns></returns>
         [HttpPost("/authority/user/{userId}/roles")]
         public async Task<ActionResult<string>> Add(string userId,
                                             [FromQuery][Required] string tenantId,
@@ -40,6 +47,12 @@ namespace BillingApiTres.Controllers.Authority
             return Ok(response);
         }
 
+        /// <summary>
+        /// 대상 유저에서 특정 권한을 제거합니다
+        /// </summary>
+        /// <param name="userId">대상 유저 id</param>
+        /// <param name="roleId">제거하는 권한 id</param>
+        /// <returns></returns>
         [HttpDelete("/authority/user/{userId}/roles/{roleId}")]
         public async Task<ActionResult> Delete(string userId, string roleId)
         {

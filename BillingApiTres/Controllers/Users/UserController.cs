@@ -14,6 +14,9 @@ namespace BillingApiTres.Controllers.Users
     [Authorize]
     public class UserController(AcmeGwClient gwClient, ILogger<UserController> logger) : ControllerBase
     {
+        /// <summary>
+        /// 사용자 초대
+        /// </summary>
         [HttpPost("/user-invite")]
         [AuthorizeAccountIdFilter([nameof(UserInviteRequest.AccountId)])]
         public async Task<ActionResult> Invite([FromBody] UserInviteRequest request)
@@ -24,6 +27,10 @@ namespace BillingApiTres.Controllers.Users
             return Ok();
         }
 
+        /// <summary>
+        /// 사용자의 비밀번호를 변경하는 이메일을 요청합니다
+        /// </summary>
+        /// <param name="userId">user id</param>
         [HttpPost("/user/{userId}/forgot-password")]
         public async Task<ActionResult> ChangePassword(string userId)
         {

@@ -14,6 +14,11 @@ namespace BillingApiTres.Controllers.AccountUsers
     public class AccountUserController(AcmeGwClient gwClient,
                                        IConfiguration config) : ControllerBase
     {
+        /// <summary>
+        /// 특정 account에 소속된 user 목록을 조회합니다.
+        /// </summary>
+        /// <param name="accountId">대상 account의 id</param>
+        /// <returns></returns>
         [AuthorizeAccountIdFilter([nameof(accountId)])]
         [HttpGet("/accountUsers")]
         public async Task<string> GetList([FromQuery][Required] long accountId)
@@ -24,6 +29,10 @@ namespace BillingApiTres.Controllers.AccountUsers
             return response;
         }
 
+        /// <summary>
+        /// 대상 user를 account에서 제거합니다
+        /// </summary>
+        /// <param name="id">account user seq</param>
         [HttpDelete("/accountUsers/{id}")]
         public async Task<ActionResult> Delete(long id)
         {
