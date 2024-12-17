@@ -99,7 +99,7 @@ namespace BillingApiTres.Controllers.Usage
                             c.AccountName = accounts.FirstOrDefault(
                                 a => a.AccountId == accountLinks.FirstOrDefault(
                                     al => al.LinkKey == i.MemberNo)?.AccountId)?.AccountName ?? string.Empty;
-                            c.CurrecncySymbol = currencyConverter.GetCurrencyInfo(i.PayCurrencyCode ?? string.Empty)?.CurrencySymbol ?? string.Empty;
+                            c.CurrencySymbol = currencyConverter.GetCurrencyInfo(i.PayCurrencyCode ?? string.Empty)?.CurrencySymbol ?? string.Empty;
                         });
                     }))
                 }

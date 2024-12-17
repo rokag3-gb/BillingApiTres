@@ -57,6 +57,6 @@ namespace BillingApiTres.Models.Dto
         /// <summary>
         /// 통화 기호
         /// </summary>
-        public string CurrecncySymbol { get; set; }
+        public string CurrencySymbol { get; set; }
     }
 }
