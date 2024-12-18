@@ -76,14 +76,14 @@ namespace BillingApiTres.Controllers.Dashboard
             while (groupByMonth.MoveNext())
             {
                 var current = groupByMonth.Current;
-                var currentSum = current.Sum(d => d.Amount);
-                var prevSum = prevMonthBills?.Sum(p => p.Amount) ?? 0;
-                var keyDate = new DateTime(current.Key.Year, current.Key.Month, 1);
+                var currentSum = current.Sum(d => d.Amount * (decimal)d.AppliedExchangeRate);
+                var prevSum = prevMonthBills?.Sum(p => p.Amount * (decimal)p.AppliedExchangeRate) ?? 0;
 
                 result.Add(
                     new RecentThreeMonthResponse
                     {
-                        YearMonth = keyDate.ToString("yyyy.MM"),
+                        Year = current.Key.Year,
+                        Month = current.Key.Month,
                         Amount = currentSum,
                         FluctuationAmount = prevSum != 0 ? currentSum - prevSum : 0,
                         FluctuationRate = prevSum != 0 ? Math.Round((currentSum - prevSum) / prevSum * 100, 1) : 0,

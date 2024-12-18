@@ -3,9 +3,14 @@
     public record RecentThreeMonthResponse
     {
         /// <summary>
-        /// 청구월
+        /// 청구 년도
         /// </summary>
-        public string YearMonth { get; set; }
+        public int Year { get; set; }
+
+        /// <summary>
+        /// 청구 월
+        /// </summary>
+        public int Month { get; set; }
 
         /// <summary>
         /// 청구 기간  from
