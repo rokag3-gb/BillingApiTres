@@ -21,5 +21,21 @@ namespace Billing.EF.Repositories
 
             return bills;
         }
+
+        public List<Bill> GetRangeWithRelations(DateTime from, DateTime to, List<long> accountIds, int? offset, int? limit)
+        {
+            var query = billContext.Bills
+                .Include(b => b.BillItems)
+                .ThenInclude(bi => bi.Product)
+                .Include(b => b.BillItems)
+                .ThenInclude(bi => bi.BillDetails)
+                .Where(b => accountIds.Contains(b.BuyerAccountId) || accountIds.Contains(b.SellerAccountId))
+                .Where(b => b.BillDate >= from && b.BillDate <= to);
+
+            if (offset != null && limit != null)
+                query = query.Skip(offset.Value).Take(limit.Value);
+            
+            return query.ToList();
+        }
     }
 }

@@ -157,5 +157,55 @@ namespace BillingApiTres.Controllers.Dashboard
 
             return result.ToList();
         }
+
+        /// <summary>
+        /// 당월 품목별 청구액을 조회합니다
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("/RecentMonthByProduct")]
+        public ActionResult<List<OneMonthDetailResponse>> RecentMonthByProduct(
+            [FromQuery] OneMonthDetailRequest request)
+        {
+            var tz = HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
+
+            var requestFrom = new DateTime(request.RequestDate.Year,
+                                           request.RequestDate.Month,
+                                           1, 0, 0, 0);
+
+            var requestTo = new DateTime(request.RequestDate.Year,
+                                         request.RequestDate.Month,
+                                         DateTime.DaysInMonth(request.RequestDate.Year, request.RequestDate.Month),
+                                         23, 59, 59);
+            requestFrom = timeZoneConverter.ConvertToUtc(requestFrom, tz!);
+            requestTo = timeZoneConverter.ConvertToUtc(requestTo, tz!);
+
+            var accountIds = request.AccountIdsCsv
+               .Split(",", StringSplitOptions.TrimEntries)
+               .Select(s =>
+               {
+                   if (long.TryParse(s, out long id))
+                       return id;
+                   return -1;
+               })
+               .Where(i => i >= 1);
+
+            if (HttpContext.AuthenticateAccountId(accountIds) == false)
+                return Forbid();
+
+            var datas = billRepository.GetRangeWithRelations(requestFrom, requestTo, accountIds.ToList(), null, null);
+            datas.ForEach(d => d.BillDate = timeZoneConverter.ConvertToLocal(d.BillDate, tz!));
+
+            var group = datas.SelectMany(b => b.BillItems).GroupBy(bi => bi.ProductId);
+            var result = group.Select(
+                g => new OneMonthDetailResponse
+                {
+                    ProductName = g.FirstOrDefault()?.Product?.ProductName ?? string.Empty,
+                    Amount = g.Sum(bi => bi.Amount * (decimal)bi.Bill.AppliedExchangeRate),
+                    CurrencyCode = "KSW",
+                    CurrencySymbol = "₩"
+                }).ToList();
+
+            return result;
+        }
     }
 }
