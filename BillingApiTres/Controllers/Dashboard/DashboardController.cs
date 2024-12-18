@@ -110,7 +110,7 @@ namespace BillingApiTres.Controllers.Dashboard
 
             var requestFrom = new DateTime(request.RequestDate.Year,
                                            request.RequestDate.Month,
-                                           1, 0, 0, 0).AddMonths(-3);
+                                           1, 0, 0, 0).AddMonths(-11);
 
             var requestTo = new DateTime(request.RequestDate.Year,
                                          request.RequestDate.Month,
@@ -136,6 +136,7 @@ namespace BillingApiTres.Controllers.Dashboard
             var accounts = await gwClient.Get<List<SalesAccount>>($"sales/account?limit=999999", token?.RawData!);
 
             var datas = billRepository.GetRange(requestFrom, requestTo, accountIds.ToList(), null, null);
+            datas.ForEach(d => d.BillDate = timeZoneConverter.ConvertToLocal(d.BillDate, tz!));
 
             var group = datas.GroupBy(d => new { d.BillDate.Year, d.BillDate.Month });
 
