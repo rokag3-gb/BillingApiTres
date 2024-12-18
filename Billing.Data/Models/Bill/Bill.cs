@@ -118,6 +118,8 @@ public partial class Bill
     [Unicode(false)]
     public string CurrencyCode { get; set; } = null!;
 
+    public double AppliedExchangeRate { get; set; }
+
     /// <summary>
     /// 비고
     /// </summary>

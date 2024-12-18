@@ -8,6 +8,7 @@ using BillingApiTres.Extensions;
 using Billing.Data.Models.Bill;
 using System.Collections.Generic;
 using BillingApiTres.Models.Clients;
+using System.Linq;
 
 namespace BillingApiTres.Controllers.Dashboard
 {
@@ -132,18 +133,25 @@ namespace BillingApiTres.Controllers.Dashboard
                 return Forbid();
 
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
-            var accounts = await gwClient.Get<List<SalesAccount>>($"sales/account?limit=999999&accountIds={request.AccountIdsCsv}", token?.RawData!);
+            var accounts = await gwClient.Get<List<SalesAccount>>($"sales/account?limit=999999", token?.RawData!);
 
             var datas = billRepository.GetRange(requestFrom, requestTo, accountIds.ToList(), null, null);
 
-            var group = datas.GroupBy(d => new { d.BillDate.Year, d.BillDate.Month, d.BuyerAccountId });
+            var group = datas.GroupBy(d => new { d.BillDate.Year, d.BillDate.Month });
 
             var result = group.Select(g => new RecentTwelveMonthResponse
             {
                 Year = g.Key.Year,
                 Month = g.Key.Month,
-                AccountName = accounts.FirstOrDefault(a => a.AccountId == g.Key.BuyerAccountId)?.AccountName ?? g.Key.BuyerAccountId.ToString(),
-                Amount = g.Sum(b => b.Amount)
+                Amounts = g.GroupBy(b => b.ConsumptionAccountId)
+                           .Select(gb =>
+                           new AccountAmount
+                           {
+                               AccountName = accounts.FirstOrDefault(a => a.AccountId == gb.Key)?.AccountName ?? gb.Key.ToString(),
+                               Amount = gb.Sum(i => i.Amount * (decimal)i.AppliedExchangeRate),
+                               CurrencyCode = "KSW",
+                               CurrencySymbol = "₩"
+                           }).ToList()
             });
 
             return result.ToList();

@@ -4,10 +4,7 @@
     {
         public int Year { get; set; }
         public int Month { get; set; }
-        public string? AccountName { get; set; } = string.Empty;
-        public decimal Amount { get; set; }
-
-        //public List<AccountAmount> Amounts { get; set; } = new List<AccountAmount>();//
+        public List<AccountAmount> Amounts { get; set; } = new List<AccountAmount>();//
     }
 
     public record AccountAmount
