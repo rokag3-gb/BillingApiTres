@@ -30,10 +30,20 @@ namespace BillingApiTres.Controllers.Bills
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
             var tz = HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
 
+            var accountIds = request.AccountIds
+                .Split(",", StringSplitOptions.TrimEntries)
+                .Select(s =>
+                {
+                    if (long.TryParse(s, out long id))
+                        return id;
+                    return -1;
+                })
+                .Where(i => i >= 1).ToList();
+
             //get bills
             var bills = billRepository.GetRange(timeZoneConverter.ConvertToUtc(request.From, tz!),
                                                 timeZoneConverter.ConvertToUtc(request.To, tz!),
-                                                request.AccountIds,
+                                                accountIds,
                                                 request.Offset,
                                                 request.limit);
 
