@@ -1,10 +1,14 @@
-﻿using BillingApiTres.Converters;
+﻿using Billing.Data.Interfaces;
+using BillingApiTres.Converters;
 using BillingApiTres.Extensions;
 using BillingApiTres.Models.Clients;
+using BillingApiTres.Models.Dto;
+using BillingApiTres.Models.Dto.Users;
 using BillingApiTres.Models.Validations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 
 namespace BillingApiTres.Controllers.AccountUsers
 {
@@ -12,6 +16,7 @@ namespace BillingApiTres.Controllers.AccountUsers
     [Route("[controller]")]
     [Authorize]
     public class AccountUserController(AcmeGwClient gwClient,
+                                       IBillRoleRepository billRoleRepository,
                                        IConfiguration config) : ControllerBase
     {
         /// <summary>
@@ -21,12 +26,34 @@ namespace BillingApiTres.Controllers.AccountUsers
         /// <returns></returns>
         [AuthorizeAccountIdFilter([nameof(accountId)])]
         [HttpGet("/accountUsers")]
-        public async Task<string> GetList([FromQuery][Required] long accountId)
+        public async Task<ActionResult<List<AccountUserResponse>>> GetList([FromQuery][Required] long accountId)
         {
             var response = await gwClient.GetSerializedString(
                 $"sales/accountUser?limit=999999&accountIdCsv={accountId}",
                 HttpMethod.Get);
-            return response;
+
+            var users = JsonSerializer.Deserialize<List<AccountUserResponse>>(response);
+
+            if (users == null || users.Any() == false)
+                return Ok();
+
+            var userRoleRes = await gwClient.GetSerializedString(
+                $"/iam/authority/users/roles",
+                HttpMethod.Post,
+                JsonContent.Create(new { userId = users.Select(u => u.UserId) }));
+
+            var userRoles = JsonSerializer.Deserialize<List<UserRoleResponse>>(userRoleRes) ?? new();
+            var billRoles = billRoleRepository.GetAll();
+            users.ForEach(
+                u => u.Roles = userRoles.FirstOrDefault(ur => ur.UserId == u.UserId)?.Roles
+                                        .Where(r => billRoles.Select(br => br.RoleId).Contains(r.RoleId))
+                                        .Select(q => new BillRoleResponse
+                                        {
+                                            BillRoleId = q.RoleId,
+                                            RoleName = q.RoleName
+                                        }));
+
+            return users;
         }
 
         /// <summary>

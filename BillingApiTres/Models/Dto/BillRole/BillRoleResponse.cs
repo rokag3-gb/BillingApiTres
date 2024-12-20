@@ -8,8 +8,8 @@ namespace BillingApiTres.Models.Dto
     public record BillRoleResponse
     {
         [SourceMember(nameof(BillingRole.RoleId))]
-        public string BillRoleId { get; set; }
+        public string BillRoleId { get; set; } = string.Empty;
         [SourceMember(nameof(BillingRole.Alias))]
-        public string RoleName { get; set; }
+        public string RoleName { get; set; } = string.Empty;
     }
 }
