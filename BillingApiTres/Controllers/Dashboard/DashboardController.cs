@@ -150,7 +150,7 @@ namespace BillingApiTres.Controllers.Dashboard
                            {
                                AccountName = accounts.FirstOrDefault(a => a.AccountId == gb.Key)?.AccountName ?? gb.Key.ToString(),
                                Amount = gb.Sum(i => i.Amount * (decimal)i.AppliedExchangeRate),
-                               CurrencyCode = "KSW",
+                               CurrencyCode = "KRW",
                                CurrencySymbol = "₩"
                            }).ToList()
             });
@@ -201,7 +201,7 @@ namespace BillingApiTres.Controllers.Dashboard
                 {
                     ProductName = g.FirstOrDefault()?.Product?.ProductName ?? string.Empty,
                     Amount = g.Sum(bi => bi.Amount * (decimal)bi.Bill.AppliedExchangeRate),
-                    CurrencyCode = "KSW",
+                    CurrencyCode = "KRW",
                     CurrencySymbol = "₩"
                 }).ToList();
 
