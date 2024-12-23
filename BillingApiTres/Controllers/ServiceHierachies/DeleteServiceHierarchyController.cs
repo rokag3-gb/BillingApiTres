@@ -17,9 +17,8 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         public async Task<ActionResult> Delete(long serialNo)
         {
             var entity = await serviceHierarchyRepository.Get(serialNo);
-
             if (entity == null)
-                return NotFound(new { serialNo = serialNo });
+                return NoContent();
 
             var accountIds = HttpContext.Items[config["AccountHeader"]!] as ImmutableHashSet<long>;
             if (accountIds?.Contains(entity.AccountId) == false)

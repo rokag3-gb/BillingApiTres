@@ -12,7 +12,6 @@ namespace BillingApiTres.Controllers.Bills
     [Route("[controller]")]
     [Authorize]
     public class BillController(IBillRepository billRepository,
-                                IAccountKeyRepository accountKeyRepository,
                                 AcmeGwClient gwClient,
                                 ITimeZoneConverter timeZoneConverter,
                                 IMapper mapper,

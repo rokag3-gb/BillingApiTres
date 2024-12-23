@@ -22,7 +22,7 @@ namespace BillingApiTres.Controllers.Bills
             var items = billItemRepository.GetList(billId, request.Offset, request.Limit);
 
             if (items.Any() == false)
-                return NotFound(new { BillId = billId });
+                return Ok(new());
 
             var accountId = new[] 
             { 

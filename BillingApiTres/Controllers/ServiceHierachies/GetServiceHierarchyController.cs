@@ -37,7 +37,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
 
             var response = await serviceHierachyRepository.Get(serialNo);
             if (response == null)
-                return NotFound(new { serialNo = serialNo });
+                return Ok(new());
 
             var requestAccountIds = new[] { response.AccountId, response.ParentAccId };
 
@@ -53,8 +53,8 @@ namespace BillingApiTres.Controllers.ServiceHierachies
 
             if (account == null)
             {
-                logger.LogError($"대상 Account가 존재하지 않습니다 - ServiceHierarchy.AccountId : {response.AccountId}");
-                return NotFound(new { serialNo = serialNo });
+                logger.LogInformation($"대상 Account가 존재하지 않습니다 - ServiceHierarchy.AccountId : {response.AccountId}");
+                return Ok(new());
             }
 
             var list = new List<SalesAccount> { parentAccount ?? new(), account };
@@ -83,7 +83,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             var parent = await serviceHierachyRepository.GetParent(accountId);
             if (parent == null)
             {
-                logger.LogError($"계약 공급 업체를 찾을 수 없음 : account id - {accountId}");
+                logger.LogInformation($"계약 공급 업체를 찾을 수 없음 : account id - {accountId}");
                 return NoContent();
             }
 

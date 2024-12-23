@@ -21,7 +21,7 @@ namespace BillingApiTres.Controllers.Bills
             var billDetails = billItemRepository.GetList(billId, request.Offset, request.Limit);
 
             if (billDetails.Any() == false)
-                return NotFound(new { BillId = billId });
+                return Ok(new());
 
             var accountId = new[] 
             { 
