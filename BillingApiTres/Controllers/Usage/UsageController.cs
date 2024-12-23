@@ -51,8 +51,12 @@ namespace BillingApiTres.Controllers.Usage
             var accounts = await gwClient.Get<List<SalesAccount>>($"sales/account?limit=999999&accountIds={request.AccountIds}", token?.RawData!);
             var accountLinks = await gwClient.Get<List<AccountLink>>($"sales/accountLink?limit=999999&accountIdCsv={request.AccountIds}", token?.RawData!);
 
+            var from = request.From;
+            if (request.UsageUnit == UsageUnit.Daily && request.From.Day != 1)
+                from = from.AddDays(-1);
+
             var usages = ncpRepository.GetList(accountLinks.Select(a => a.LinkKey),
-                                               request.From,
+                                               from,
                                                request.To,
                                                request.Offset,
                                                request.Limit);
@@ -76,8 +80,11 @@ namespace BillingApiTres.Controllers.Usage
                     }
                 }
             }
-
-
+            
+            //차액 계산을 위해 사용했던 from 하루 전 레코드를 제거한다.
+            if (from.CompareTo(request.From) != 0)
+                usages = usages.Where(u => u.WriteDate.Date > from.Date).ToList();
+             
             IEnumerable<IGrouping<string, NcpMaster>> grouped = default!;
 
             if (request.UsageUnit == UsageUnit.Daily)
