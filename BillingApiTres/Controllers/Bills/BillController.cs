@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Billing.Data.Interfaces;
 using BillingApiTres.Converters;
+using BillingApiTres.Extensions;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
 using BillingApiTres.Models.Validations;
@@ -19,6 +20,9 @@ namespace BillingApiTres.Controllers.Bills
                                 CurrencyConverter currencyConverter,
                                 ILogger<BillController> logger) : ControllerBase
     {
+        /// <summary>
+        /// 지정한 기간 내 특정 고객사들의 청구서를 조회합니다
+        /// </summary>
         [AuthorizeAccountIdFilter([nameof(request.AccountIds)])]
         [HttpGet("/bills")]
         public async Task<ActionResult<List<BillResponse>>> GetList([FromQuery] BillListRequest request)
@@ -104,6 +108,32 @@ namespace BillingApiTres.Controllers.Bills
             }).ToList();
 
             return response;
+        }
+
+        /// <summary>
+        /// 특정 청구서들의 상태를 갱신합니다
+        /// </summary>
+        [HttpPut("/bills")]
+        public async Task<ActionResult> Update([FromBody] BillUpdateRequest request)
+        {
+            var bills = billRepository.GetRange(null, null, null, request.BillIds, null, null);
+
+            if (bills?.Any() == false)
+                return NotFound($"not found bill resource : {string.Join(",", request.BillIds)}");
+
+            if (HttpContext.AuthenticateAccountId(bills!.Select(b => b.BuyerAccountId)) == false)
+                return Forbid();
+
+            var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
+            var billStatus = await gwClient.Get<List<SaleCode>>($"sales/code/BST/childs", token?.RawData!);
+            var billStatusCodes = billStatus.Select(bs => bs.Code).ToHashSet();
+
+            if (billStatusCodes.Contains(request.StatusCode) == false)
+                return BadRequest($"적절하지 않은 상태 코드 요청 입니다 : {request.StatusCode} - {string.Join(", " , billStatusCodes)} 만 유효합니다");
+            
+            billRepository.UpdateStatus(request.StatusCode, request.BillIds);
+
+            return Ok();
         }
     }
 }
