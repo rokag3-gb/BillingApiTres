@@ -37,6 +37,8 @@ namespace BillingApiTres.Controllers.AccountUsers
             if (users == null || users.Any() == false)
                 return Ok();
 
+            users = users.Where(u => u.UserInfo != null).ToList();
+
             var userRoleRes = await gwClient.GetSerializedString(
                 $"/iam/authority/users/roles",
                 HttpMethod.Post,
