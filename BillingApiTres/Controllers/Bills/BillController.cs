@@ -113,7 +113,7 @@ namespace BillingApiTres.Controllers.Bills
         /// <summary>
         /// 특정 청구서들의 상태를 갱신합니다
         /// </summary>
-        [HttpPut("/bills")]
+        [HttpPut("/bills/status")]
         public async Task<ActionResult> Update([FromBody] BillUpdateRequest request)
         {
             var bills = billRepository.GetRange(null, null, null, request.BillIds, null, null);
