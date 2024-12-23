@@ -43,6 +43,7 @@ namespace BillingApiTres.Controllers.Bills
             var bills = billRepository.GetRange(timeZoneConverter.ConvertToUtc(request.From, tz!),
                                                 timeZoneConverter.ConvertToUtc(request.To, tz!),
                                                 accountIds,
+                                                null,
                                                 request.Offset,
                                                 request.limit);
 

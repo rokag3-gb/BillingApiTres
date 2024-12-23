@@ -56,7 +56,7 @@ namespace BillingApiTres.Controllers.Dashboard
             if (HttpContext.AuthenticateAccountId(accountIds) == false)
                 return Forbid();
 
-            var datas = billRepository.GetRange(requestFrom, requestTo, accountIds.ToList(), null, null);
+            var datas = billRepository.GetRange(requestFrom, requestTo, accountIds.ToList(), null, null, null);
             datas.ForEach(d =>
             {
                 d.BillDate = timeZoneConverter.ConvertToLocal(d.BillDate, tz!);
@@ -135,7 +135,7 @@ namespace BillingApiTres.Controllers.Dashboard
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
             var accounts = await gwClient.Get<List<SalesAccount>>($"sales/account?limit=999999", token?.RawData!);
 
-            var datas = billRepository.GetRange(requestFrom, requestTo, accountIds.ToList(), null, null);
+            var datas = billRepository.GetRange(requestFrom, requestTo, accountIds.ToList(), null, null, null);
             datas.ForEach(d => d.BillDate = timeZoneConverter.ConvertToLocal(d.BillDate, tz!));
 
             var group = datas.GroupBy(d => new { d.BillDate.Year, d.BillDate.Month });
