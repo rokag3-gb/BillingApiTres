@@ -53,7 +53,7 @@ namespace BillingApiTres.Controllers.AccountUsers
                                         {
                                             BillRoleId = q.RoleId,
                                             RoleName = q.RoleName
-                                        }));
+                                        }) ?? Enumerable.Empty<BillRoleResponse>());
 
             return users;
         }
