@@ -35,7 +35,7 @@ namespace BillingApiTres.Controllers.AccountUsers
             var users = JsonSerializer.Deserialize<List<AccountUserResponse>>(response);
 
             if (users == null || users.Any() == false)
-                return Ok();
+                return Ok(Enumerable.Empty<AccountUserResponse>());
 
             users = users.Where(u => u.UserInfo != null).ToList();
 
