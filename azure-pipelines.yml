@@ -72,7 +72,7 @@ stages:
         acrName: $(containerRegistryName)
         containerAppName: $(containerAppName)
         resourceGroup: $(containerAppRg)
-        imageToDeploy: '$(containerRegistry)/$(imageRepository):$(latestTag)'
+        imageToDeploy: '$(containerRegistry)/$(imageRepository):$(tag)'
   - job: Docs
     displayName: Docs
     pool:
