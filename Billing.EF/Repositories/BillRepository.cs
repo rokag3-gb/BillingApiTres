@@ -22,11 +22,11 @@ namespace Billing.EF.Repositories
                 query = query.Where(b => billIds.Contains(b.BillId));
 
             if (offset != null && limit != null)
-                bills = query.Skip(offset.Value).Take(limit.Value).ToList();
-            else
-                bills = query.ToList();
+                query = query.Skip(offset.Value).Take(limit.Value);
 
-            return bills;
+            query.OrderBy(b => b.BillDate);
+
+            return query.ToList();
         }
 
         public List<Bill> GetRangeWithRelations(DateTime from, DateTime to, List<long> accountIds, int? offset, int? limit)

@@ -67,7 +67,6 @@ namespace BillingApiTres.Controllers.Dashboard
             });
 
             var groupByMonth = datas.GroupBy(d => new { d.BillDate.Year, d.BillDate.Month })
-                .OrderBy(g => g.Key)
                 .GetEnumerator();
 
             List<RecentThreeMonthResponse> result = new();
