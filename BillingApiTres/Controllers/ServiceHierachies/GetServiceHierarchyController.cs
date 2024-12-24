@@ -84,7 +84,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             if (parent == null)
             {
                 logger.LogInformation($"계약 공급 업체를 찾을 수 없음 : account id - {accountId}");
-                return NoContent();
+                return Ok(Enumerable.Empty<ServiceHierarchyResponse>());
             }
 
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
@@ -133,9 +133,10 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             var accounts = await gwClient
                 .Get<List<SalesAccount>>($"sales/account?limit=999999",
                                          token?.RawData!);
+            if (accounts == null)
+                return Ok(Enumerable.Empty<ServiceHierarchyResponse>());
 
             accounts.RemoveAll(a => allContractedIds.Contains(a.AccountId));
-
             return accounts;
         }
 
