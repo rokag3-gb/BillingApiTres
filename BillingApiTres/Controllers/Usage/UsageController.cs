@@ -2,11 +2,13 @@
 using Billing.Data.Interfaces;
 using Billing.Data.Models.Bill;
 using BillingApiTres.Converters;
+using BillingApiTres.Extensions;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
 using BillingApiTres.Models.Validations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BillingApiTres.Controllers.Usage
 {
@@ -54,6 +56,14 @@ namespace BillingApiTres.Controllers.Usage
             var from = request.From;
             if (request.UsageUnit == UsageUnit.Daily && request.From.Day != 1)
                 from = from.AddDays(-1);
+            else if (request.UsageUnit == UsageUnit.Monthly)
+            {
+                from = from.AddDays(-(from.Day - 1));
+                request.To = request.To.AddDays(
+                    DateTime.DaysInMonth(request.To.Year, request.To.Month) - request.To.Day);
+            }
+            from = from.StartOfDay();
+            request.To = request.To.EndOfDay();
 
             var usages = ncpRepository.GetList(accountLinks.Select(a => a.LinkKey),
                                                from,
@@ -82,7 +92,7 @@ namespace BillingApiTres.Controllers.Usage
             }
             
             //차액 계산을 위해 사용했던 from 하루 전 레코드를 제거한다.
-            if (from.CompareTo(request.From) != 0)
+            if (request.UsageUnit == UsageUnit.Daily && request.From.Day != 1)
                 usages = usages.Where(u => u.WriteDate.Date > from.Date).ToList();
              
             IEnumerable<IGrouping<string, NcpMaster>> grouped = default!;

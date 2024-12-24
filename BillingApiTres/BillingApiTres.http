@@ -1,5 +1,5 @@
-@BillingApiTres_HostAddress = https://localhost:7127
-@authToken = bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJ2S1Rwc3pCMjdfMzROejBpaW9BQm5ZT25SMndsbW1sVjRDeXVfOWtEdy1nIn0.eyJleHAiOjE3MzQ5NTEyOTMsImlhdCI6MTczNDk0NzY5MywianRpIjoiMWEyY2QyMzMtYmFkYS00ZmM5LTkzZDQtNzFhZTFmMGM2ZTQ3IiwiaXNzIjoiaHR0cHM6Ly9kZXYua2V5LmFobmxhYmNsb3VkbWF0ZS5jb20vcmVhbG1zL0lBTSIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJkNmZiOGM2My04YzMwLTQwOTEtODRkNC1iYjJiMDgxZDI3YzMiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJpYW0iLCJzZXNzaW9uX3N0YXRlIjoiOGRiMTFkOTUtNzlmZS00NDk4LTlhNjAtZGUyMGY0NGJjNDY2IiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJkZWZhdWx0LXJvbGVzLWlhbSIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6ImVtYWlsIHByb2ZpbGUiLCJzaWQiOiI4ZGIxMWQ5NS03OWZlLTQ0OTgtOWE2MC1kZTIwZjQ0YmM0NjYiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IuOFjuOFheOFjiIsInByZWZlcnJlZF91c2VybmFtZSI6InNhbmdodW4uaGFuQGFobmxhYmNsb3VkbWF0ZS5jb20iLCJnaXZlbl9uYW1lIjoi44WO44WF44WOIiwiZmFtaWx5X25hbWUiOiIiLCJlbWFpbCI6InNhbmdodW4uaGFuQGFobmxhYmNsb3VkbWF0ZS5jb20ifQ.2q_0OTZXBYjP8hHaCs2gUhf5wD6WasmvTHeFMxGd6GQXHQHF6wvwr1q1w19mzMW4Xh0L4XWOda9nXFedwW_2ZRqhmmWyz-tp-HfQa5Ie5uw3sxLY1_-M2WDLSteb7OT6Z-iWtcBS8XMR4YHdNoSh_weLMQetvkkv1jZGhamXpJozK_CCSMyxVqJY6b_SgjoieVE7T-R89YIt3rA04u9ZURSk6bwn9zEhcsB83cm1NPB283uhJDU7YtZch9GUUx1Q2g2ACePfc4AJJT6l151NYI9p5y_ilgli-_Xoim_QoDMff0Z73LFeqJtRKBkEc7bFTd9hYoSDZSfM8eP1C07mvg
+Ôªø@BillingApiTres_HostAddress = https://localhost:7127
+@authToken = bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJ2S1Rwc3pCMjdfMzROejBpaW9BQm5ZT25SMndsbW1sVjRDeXVfOWtEdy1nIn0.eyJleHAiOjE3MzUwMjU3NTUsImlhdCI6MTczNTAyMjE1NSwianRpIjoiNTEwMGVmYTgtYzMwMi00ZTIzLTkwZWEtYmQzMmM3YjVhMjZiIiwiaXNzIjoiaHR0cHM6Ly9kZXYua2V5LmFobmxhYmNsb3VkbWF0ZS5jb20vcmVhbG1zL0lBTSIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJkNmZiOGM2My04YzMwLTQwOTEtODRkNC1iYjJiMDgxZDI3YzMiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJpYW0iLCJzZXNzaW9uX3N0YXRlIjoiNGQ1ZTE2ZGEtNzI2OC00OTFlLThiODAtZTYyZmUyMWI3MWNmIiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJkZWZhdWx0LXJvbGVzLWlhbSIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6ImVtYWlsIHByb2ZpbGUiLCJzaWQiOiI0ZDVlMTZkYS03MjY4LTQ5MWUtOGI4MC1lNjJmZTIxYjcxY2YiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IuOFjuOFheOFjiIsInByZWZlcnJlZF91c2VybmFtZSI6InNhbmdodW4uaGFuQGFobmxhYmNsb3VkbWF0ZS5jb20iLCJnaXZlbl9uYW1lIjoi44WO44WF44WOIiwiZmFtaWx5X25hbWUiOiIiLCJlbWFpbCI6InNhbmdodW4uaGFuQGFobmxhYmNsb3VkbWF0ZS5jb20ifQ.Pud7z6PebyUY3K9Azego5Cb6QePdp44GCHqaXNmtXrZPOqBDfivpRfL_yvKy8mYmBu15FxHXbISySJ8V16-E9KXFhwrYYEDOyTqAr_rP-p7Mkw6rZKoMHCIoguuKYS2GfQarb_k1fEV0zCXVB47bJqGuDqKNEj0u4Ai-brsfXg2YJcy4KkR0VVWDwPxyEsjdJgizhBHzCaN701q4xb3mpjY9I2pHwmPyCgnf4n782AVyW5becMJItKn8ObiA8XtnKRdjFj8lnelNA22UtvFS__aEaIfPnr3tv9t1Du92Y45-3JqEaPKz9dQ9dLqpP0M_RcyvnMp3t3Nz3wDCoTNR_A
 
 GET {{BillingApiTres_HostAddress}}/weatherforecast/
 Accept: application/json
@@ -39,24 +39,24 @@ X-TimeZone : Asia/Seoul
 
 ###
 
-#¿œ¥‹¿ß ªÁøÎ∑Æ ¡∂»∏ (ø˘ ¡ﬂ∞£ ∫Œ≈Õ)
-GET {{BillingApiTres_HostAddress}}/usages?usageUnit=daily&accountIds=11214&from=2024-12-03+00%3A00%3A00&to=2024-12-05+23%3A59%3A59
+#ÏùºÎã®ÏúÑ ÏÇ¨Ïö©Îüâ Ï°∞Ìöå (Ïõî Ï§ëÍ∞Ñ Î∂ÄÌÑ∞)
+GET {{BillingApiTres_HostAddress}}/usages?usageUnit=daily&accountIds=11214&from=2024-12-03+05%3A00%3A00&to=2024-12-05+17%3A59%3A59
 X-Account: 1,11214
 authorization: {{authToken}}
 X-TimeZone : Asia/Seoul
 
 ###
 
-#¿œ¥‹¿ß ªÁøÎ∑Æ ¡∂»∏ (ø˘√  ∫Œ≈Õ)
-GET {{BillingApiTres_HostAddress}}/usages?usageUnit=daily&accountIds=11214&from=2024-12-01+00%3A00%3A00&to=2024-12-03+23%3A59%3A59
+#ÏùºÎã®ÏúÑ ÏÇ¨Ïö©Îüâ Ï°∞Ìöå (ÏõîÏ¥à Î∂ÄÌÑ∞)
+GET {{BillingApiTres_HostAddress}}/usages?usageUnit=daily&accountIds=11214&from=2024-12-01+13%3A00%3A00&to=2024-12-03+03%3A59%3A59
 X-Account: 1,11214
 authorization: {{authToken}}
 X-TimeZone : Asia/Seoul
 
 ###
 
-#ø˘¥‹¿ß ªÁøÎ∑Æ ¡∂»∏
-GET {{BillingApiTres_HostAddress}}/usages?usageUnit=monthly&accountIds=11214&from=2024-11-08+00%3A00%3A00&to=2024-12-03+23%3A59%3A59
+#ÏõîÎã®ÏúÑ ÏÇ¨Ïö©Îüâ Ï°∞Ìöå
+GET {{BillingApiTres_HostAddress}}/usages?usageUnit=monthly&accountIds=11214&from=2024-11-08+07%3A00%3A00&to=2024-12-01+15%3A59%3A59
 X-Account: 1,11214
 authorization: {{authToken}}
 X-TimeZone : Asia/Seoul
