@@ -1,5 +1,5 @@
 ﻿@BillingApiTres_HostAddress = https://localhost:7127
-@authToken = bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJ2S1Rwc3pCMjdfMzROejBpaW9BQm5ZT25SMndsbW1sVjRDeXVfOWtEdy1nIn0.eyJleHAiOjE3MzUwMjU3NTUsImlhdCI6MTczNTAyMjE1NSwianRpIjoiNTEwMGVmYTgtYzMwMi00ZTIzLTkwZWEtYmQzMmM3YjVhMjZiIiwiaXNzIjoiaHR0cHM6Ly9kZXYua2V5LmFobmxhYmNsb3VkbWF0ZS5jb20vcmVhbG1zL0lBTSIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJkNmZiOGM2My04YzMwLTQwOTEtODRkNC1iYjJiMDgxZDI3YzMiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJpYW0iLCJzZXNzaW9uX3N0YXRlIjoiNGQ1ZTE2ZGEtNzI2OC00OTFlLThiODAtZTYyZmUyMWI3MWNmIiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJkZWZhdWx0LXJvbGVzLWlhbSIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6ImVtYWlsIHByb2ZpbGUiLCJzaWQiOiI0ZDVlMTZkYS03MjY4LTQ5MWUtOGI4MC1lNjJmZTIxYjcxY2YiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IuOFjuOFheOFjiIsInByZWZlcnJlZF91c2VybmFtZSI6InNhbmdodW4uaGFuQGFobmxhYmNsb3VkbWF0ZS5jb20iLCJnaXZlbl9uYW1lIjoi44WO44WF44WOIiwiZmFtaWx5X25hbWUiOiIiLCJlbWFpbCI6InNhbmdodW4uaGFuQGFobmxhYmNsb3VkbWF0ZS5jb20ifQ.Pud7z6PebyUY3K9Azego5Cb6QePdp44GCHqaXNmtXrZPOqBDfivpRfL_yvKy8mYmBu15FxHXbISySJ8V16-E9KXFhwrYYEDOyTqAr_rP-p7Mkw6rZKoMHCIoguuKYS2GfQarb_k1fEV0zCXVB47bJqGuDqKNEj0u4Ai-brsfXg2YJcy4KkR0VVWDwPxyEsjdJgizhBHzCaN701q4xb3mpjY9I2pHwmPyCgnf4n782AVyW5becMJItKn8ObiA8XtnKRdjFj8lnelNA22UtvFS__aEaIfPnr3tv9t1Du92Y45-3JqEaPKz9dQ9dLqpP0M_RcyvnMp3t3Nz3wDCoTNR_A
+@authToken = bearer 
 
 GET {{BillingApiTres_HostAddress}}/weatherforecast/
 Accept: application/json
@@ -60,3 +60,26 @@ GET {{BillingApiTres_HostAddress}}/usages?usageUnit=monthly&accountIds=11214&fro
 X-Account: 1,11214
 authorization: {{authToken}}
 X-TimeZone : Asia/Seoul
+
+###
+
+# 고객 청구서 생성
+POST {{BillingApiTres_HostAddress}}/bills/customer
+Content-Type: application/json
+X-Account: 1,11214
+authorization: {{authToken}}
+X-TimeZone : Asia/Seoul
+
+{
+  "billIds" : [1760, 1774, 1945, 1781, 1784, 1785, 1808, 1838, 2050]
+}
+
+###
+
+# 청구서 조회
+GET {{BillingApiTres_HostAddress}}/bills?from=2022-10-10&to=2025-10-10&AccountIds=1
+X-Account: 1,11214,11343
+authorization: {{authToken}}
+X-TimeZone : Asia/Seoul
+
+###
