@@ -4,6 +4,7 @@ using Billing.Data.Models.Iam;
 using Billing.Data.Models.Sale;
 using Billing.EF.Repositories;
 using BillingApiTres.Converters;
+using BillingApiTres.Extensions;
 using BillingApiTres.Helper;
 using BillingApiTres.Models.Clients;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
