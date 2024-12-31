@@ -20,10 +20,6 @@
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[BillDetail]",
-         "ObjectType": 0
-      },
-      {
          "Name": "[dbo].[BillingRole]",
          "ObjectType": 0
       },

@@ -1,9 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Billing.Data.Models.Bill
 {
@@ -20,7 +15,7 @@ namespace Billing.Data.Models.Bill
 
             modelBuilder.Entity<NcpDetail>(entity =>
             {
-                entity.HasOne(d => d.BillDetail)
+                entity.HasOne(d => d.BillItem)
                       .WithMany(p => p.NcpDetails)
                       .HasForeignKey(d => d.KeyId)
                       .HasPrincipalKey(p => p.KeyId);

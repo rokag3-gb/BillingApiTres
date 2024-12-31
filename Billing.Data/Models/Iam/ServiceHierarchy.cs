@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Billing.Data.Models.Iam;
 
 [Table("ServiceHierarchy")]
+[Index("ParentAccId", Name = "Idx_ServiceHierarchy_ParentAccId")]
+[Index("AccountId", Name = "Idx_unique_ServiceHierarchy_AccountId", IsUnique = true)]
 public partial class ServiceHierarchy
 {
     [Key]

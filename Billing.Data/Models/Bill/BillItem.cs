@@ -41,6 +41,14 @@ public partial class BillItem
     [Column(TypeName = "money")]
     public decimal Amount { get; set; }
 
+    [StringLength(7)]
+    [Unicode(false)]
+    public string? VendorCode { get; set; }
+
+    [StringLength(500)]
+    [Unicode(false)]
+    public string? KeyId { get; set; }
+
     /// <summary>
     /// 적요
     /// </summary>
@@ -60,9 +68,6 @@ public partial class BillItem
     [ForeignKey("BillId")]
     [InverseProperty("BillItems")]
     public virtual Bill Bill { get; set; } = null!;
-
-    [InverseProperty("BillItem")]
-    public virtual ICollection<BillDetail> BillDetails { get; set; } = new List<BillDetail>();
 
     [ForeignKey("ProductId")]
     [InverseProperty("BillItems")]

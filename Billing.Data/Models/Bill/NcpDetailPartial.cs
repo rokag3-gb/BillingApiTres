@@ -11,6 +11,6 @@ namespace Billing.Data.Models.Bill
     {
         [ForeignKey("KeyId")]
         [InverseProperty("NcpDetails")]
-        public virtual BillDetail BillDetail { get; set; }
+        public virtual BillItem BillItem { get; set; } = null!;
     }
 }

@@ -59,18 +59,18 @@ public partial class Bill
     public string StatusCode { get; set; } = null!;
 
     /// <summary>
-    /// nullable. 클라우드 사용 시작일(UTC)
+    /// 클라우드 사용 고객사
     /// </summary>
     public long? ConsumptionAccountId { get; set; }
 
     /// <summary>
-    /// nullable. 클라우드 사용 종료일(UTC)
+    /// nullable. 클라우드 사용 시작일(UTC)
     /// </summary>
     [Column(TypeName = "datetime")]
     public DateTime? ConsumptionStartDate { get; set; }
 
     /// <summary>
-    /// 클라우드 사용 고객사
+    /// nullable. 클라우드 사용 종료일(UTC)
     /// </summary>
     [Column(TypeName = "datetime")]
     public DateTime? ConsumptionEndDate { get; set; }
@@ -140,6 +140,13 @@ public partial class Bill
     [StringLength(6)]
     [Unicode(false)]
     public string? BillMonthKst { get; set; }
+
+    /// <summary>
+    /// 최초 CSP의 매입 데이터를 반영해 놓을 때에만 필요. 다른 경우에는 사용하지 않음
+    /// </summary>
+    [StringLength(500)]
+    [Unicode(false)]
+    public string? KeyId { get; set; }
 
     [InverseProperty("Bill")]
     public virtual ICollection<BillItem> BillItems { get; set; } = new List<BillItem>();

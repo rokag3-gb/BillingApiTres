@@ -15,8 +15,6 @@ public partial class BillContext : DbContext
 
     public virtual DbSet<Bill> Bills { get; set; }
 
-    public virtual DbSet<BillDetail> BillDetails { get; set; }
-
     public virtual DbSet<BillItem> BillItems { get; set; }
 
     public virtual DbSet<BillingRole> BillingRoles { get; set; }
@@ -43,13 +41,14 @@ public partial class BillContext : DbContext
             entity.Property(e => e.BillMonthKst).HasComputedColumnSql("(CONVERT([varchar](6),dateadd(hour,(9),[BillDate]),(112)))", true);
             entity.Property(e => e.BuyerAccountId).HasComment("공급받는자 AccountId");
             entity.Property(e => e.BuyerManagerId).HasComment("공급받는자 Account 담당자");
-            entity.Property(e => e.ConsumptionAccountId).HasComment("nullable. 클라우드 사용 시작일(UTC)");
+            entity.Property(e => e.ConsumptionAccountId).HasComment("클라우드 사용 고객사");
             entity.Property(e => e.ConsumptionAmount).HasComment("클라우드 사용액");
-            entity.Property(e => e.ConsumptionEndDate).HasComment("클라우드 사용 고객사");
-            entity.Property(e => e.ConsumptionStartDate).HasComment("nullable. 클라우드 사용 종료일(UTC)");
+            entity.Property(e => e.ConsumptionEndDate).HasComment("nullable. 클라우드 사용 종료일(UTC)");
+            entity.Property(e => e.ConsumptionStartDate).HasComment("nullable. 클라우드 사용 시작일(UTC)");
             entity.Property(e => e.CurrencyCode).HasComment("청구통화코드 #CUR (E.g., KRW, JPY)");
             entity.Property(e => e.DiscountAmount).HasComment("할인액");
             entity.Property(e => e.ExtraAmount).HasComment("추가청구액");
+            entity.Property(e => e.KeyId).HasComment("최초 CSP의 매입 데이터를 반영해 놓을 때에만 필요. 다른 경우에는 사용하지 않음");
             entity.Property(e => e.Remark).HasComment("비고");
             entity.Property(e => e.SavedAt)
                 .HasDefaultValueSql("(dateadd(hour,(-9),getdate()))")
@@ -61,22 +60,6 @@ public partial class BillContext : DbContext
             entity.Property(e => e.TotalAmount)
                 .HasComputedColumnSql("(CONVERT([money],[Amount]+[Tax]))", true)
                 .HasComment("공급대가 (공급가액+세액)");
-        });
-
-        modelBuilder.Entity<BillDetail>(entity =>
-        {
-            entity.HasKey(e => e.BillDetailId).HasName("PK_BillDetail_BillDetailId");
-
-            entity.ToTable("BillDetail", tb => tb.HasComment("청구서 벤더 디테일 테이블"));
-
-            entity.Property(e => e.BillDetailId).HasComment("청구상세번호");
-            entity.Property(e => e.BillItemId).HasComment("청구품목번호");
-            entity.Property(e => e.KeyId).HasComment("demandMonth-zone-account-memberNo");
-            entity.Property(e => e.VendorCode).HasComment("#VEN 벤더코드");
-
-            entity.HasOne(d => d.BillItem).WithMany(p => p.BillDetails)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_BillDetail_BillItem");
         });
 
         modelBuilder.Entity<BillItem>(entity =>
