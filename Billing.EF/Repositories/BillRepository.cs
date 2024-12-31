@@ -34,8 +34,6 @@ namespace Billing.EF.Repositories
             var query = billContext.Bills
                 .Include(b => b.BillItems)
                 .ThenInclude(bi => bi.Product)
-                .Include(b => b.BillItems)
-                .ThenInclude(bi => bi.BillDetails)
                 .Where(b => accountIds.Contains(b.BuyerAccountId) || accountIds.Contains(b.SellerAccountId))
                 .Where(b => b.BillDate >= from && b.BillDate <= to);
 

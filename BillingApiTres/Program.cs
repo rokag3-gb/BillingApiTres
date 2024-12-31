@@ -31,7 +31,6 @@ namespace BillingApiTres
             builder.Services.AddScoped<IServiceHierarchyRepository, ServiceHierarchyRepository>();
             builder.Services.AddScoped<IAccountKeyRepository, AccountKeyRepository>();
             builder.Services.AddScoped<IBillRepository, BillRepository>();
-            builder.Services.AddScoped<IBillDetailRepository, BillDetailRepository>();
             builder.Services.AddScoped<IBillItemRepository, BillItemRepository>();
             builder.Services.AddScoped<INcpRepository, NcpRepository>();
             builder.Services.AddScoped<IBillRoleRepository, BillRoleRepository>();
