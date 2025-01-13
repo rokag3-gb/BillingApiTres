@@ -10,6 +10,7 @@ namespace Billing.Data.Interfaces
         Task<ServiceHierarchy?> Get(long serialNo);
         Task<List<ServiceHierarchy>> GetChild(long parentAccountId);
         Task<List<ServiceHierarchy>> GetChild(List<long> parentAccountIds);
+        List<ServiceHierarchy> GetList(IEnumerable<long>? accountIds = null, IEnumerable<string>? typeCodes = null);
         Task<ServiceHierarchy?> GetParent(long accountId);
         Task Update(ServiceHierarchy entity);
     }

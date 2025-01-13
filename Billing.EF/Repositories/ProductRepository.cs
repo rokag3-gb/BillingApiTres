@@ -1,5 +1,6 @@
 ﻿using Billing.Data.Interfaces;
 using Billing.Data.Models.Bill;
+using Microsoft.EntityFrameworkCore;
 
 namespace Billing.EF.Repositories
 {
@@ -7,7 +8,7 @@ namespace Billing.EF.Repositories
     {
         public List<Product> GetList()
         {
-            return billContext.Products.ToList();
+            return billContext.Products.AsNoTracking().ToList();
         }
     }
 }
