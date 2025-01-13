@@ -37,6 +37,10 @@ public partial class Product
     [StringLength(1000)]
     public string? Remark { get; set; }
 
+    [StringLength(7)]
+    [Unicode(false)]
+    public string ProductCode { get; set; } = null!;
+
     /// <summary>
     /// Default: current_timestamp
     /// </summary>

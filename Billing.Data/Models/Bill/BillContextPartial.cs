@@ -13,13 +13,13 @@ namespace Billing.Data.Models.Bill
                 .ValueGeneratedOnAdd();
             });
 
-            modelBuilder.Entity<NcpDetail>(entity =>
-            {
-                entity.HasOne(d => d.BillItem)
-                      .WithMany(p => p.NcpDetails)
-                      .HasForeignKey(d => d.KeyId)
-                      .HasPrincipalKey(p => p.KeyId);
-            });
+            //modelBuilder.Entity<NcpDetail>(entity =>
+            //{
+            //    entity.HasOne(d => d.BillItem)
+            //          .WithMany(p => p.NcpDetails)
+            //          .HasForeignKey(d => d.KeyId)
+            //          .HasPrincipalKey(p => p.KeyId);
+            //});
         }
     }
 }

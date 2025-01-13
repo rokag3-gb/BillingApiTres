@@ -21,6 +21,8 @@ public partial class BillContext : DbContext
 
     public virtual DbSet<NcpDetail> NcpDetails { get; set; }
 
+    public virtual DbSet<NcpMarginExceptProduct> NcpMarginExceptProducts { get; set; }
+
     public virtual DbSet<NcpMaster> NcpMasters { get; set; }
 
     public virtual DbSet<NcpMember> NcpMembers { get; set; }
@@ -102,6 +104,16 @@ public partial class BillContext : DbContext
 
             entity.Property(e => e.BatchDate).HasComputedColumnSql("(CONVERT([date],[writeDate]))", true);
             entity.Property(e => e.KeyId).HasComputedColumnSql("(CONVERT([varchar](500),concat([demandMonth],'-',[zone],'-',[account],'-',[memberNo])))", true);
+        });
+
+        modelBuilder.Entity<NcpMarginExceptProduct>(entity =>
+        {
+            entity.HasKey(e => e.Sno).HasName("PK_NCP_MarginExceptProduct_Sno");
+
+            entity.HasIndex(e => new { e.Operator, e.ProductName }, "idx_NCP_MarginExceptProduct_Operator_ProductName_filtered_IsActive_1").HasFilter("([IsActive]=(1))");
+
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.SavedAt).HasDefaultValueSql("(dateadd(hour,(-9),getdate()))");
         });
 
         modelBuilder.Entity<NcpMaster>(entity =>
