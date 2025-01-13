@@ -39,16 +39,18 @@ namespace Billing.EF.Repositories
             //                                    && b.ConsumptionAccountId == c.comsumptionAccountId));
 
             var query = billContext.Bills.AsQueryable();
-            var predicate = PredicateBuilder.True<Bill>();
+            var predicate = PredicateBuilder.False<Bill>();
 
             foreach (var condition in conditions)
             {
-                predicate.Or(b => b.BillDate == condition.BillDate
-                                  && b.BuyerAccountId == condition.BuyerAccountId
-                                  && b.ConsumptionAccountId == condition.ConsumptionAccountId);
+                predicate = predicate.Or(b => 
+                    b.BillDate == condition.BillDate
+                    && b.BuyerAccountId == condition.BuyerAccountId
+                    && b.ConsumptionAccountId == condition.ConsumptionAccountId);
             }
 
             query = query.Where(predicate);
+
             query = query.GroupBy(b => new { b.BillDate, b.BuyerAccountId, b.ConsumptionAccountId })
                          .Select(g => g.OrderByDescending(b => b.SavedAt).First());
 

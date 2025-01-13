@@ -303,9 +303,8 @@ namespace BillingApiTres.Controllers.Bills
             response.AddFail(resultCheckDuplicate.Fails);
             
             var failedBillIds = response.Fails.SelectMany(f => f.EntityIds).ToList();
-            var failedBills = copiedBills.Where(cb => failedBillIds.Contains(cb.BillId)).ToList();
+            var failedBills = copiedBills.Where(cb => failedBillIds.Contains(cb.OriginalBillId)).ToList();
             failedBills.ForEach(fb => copiedBills.Remove(fb));
-
 
             var addedBills = billRepository.Create(copiedBills);
 
