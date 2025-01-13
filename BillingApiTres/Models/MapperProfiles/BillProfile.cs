@@ -12,7 +12,7 @@ namespace BillingApiTres.Models.MapperProfiles
             CreateMap<NcpDetail, BillDetailResponse>();
             CreateMap<Bill, Bill>().IgnoreKeyProperties()
                 .ForMember(dest => dest.OriginalBillId, opt => opt.MapFrom(src => src.BillId))
-                .ForMember(dest => dest.BillDate, opt => opt.MapFrom(src => DateTime.UtcNow))
+                //.ForMember(dest => dest.BillDate, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.SavedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
             CreateMap<BillItem, BillItem>().IgnoreKeyProperties()
                 .ForMember(dest => dest.SavedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
