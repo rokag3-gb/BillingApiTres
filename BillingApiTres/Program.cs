@@ -81,7 +81,10 @@ namespace BillingApiTres
 
                 var securityScheme = new OpenApiSecurityScheme
                 {
-                    Description = @"Header 의 Authorization에 들어갈 JWT Bearer 인가 토큰. (예시: `eyJ...In0.eyJ...CJ9.ZLo...IDQ`)",
+#if DEBUG
+                    Description = @"Header의 Authorization에 들어갈 JWT Bearer 인가 토큰.. (예시: `eyJ...In0.eyJ...CJ9.ZLo...IDQ`)",
+#endif
+                    //Description = @"Header 의 Authorization에 들어갈 JWT Bearer 인가 토큰. (예시: `eyJ...In0.eyJ...CJ9.ZLo...IDQ`)",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.Http,

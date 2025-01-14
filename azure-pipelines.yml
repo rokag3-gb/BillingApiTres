@@ -16,6 +16,7 @@ variables:
   projPath: '$(Build.SourcesDirectory)/BillingApiTres/BillingApiTres'
   vmImageName: 'ubuntu-latest'
   ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
+    buildConfiguration: 'Debug'
     containerRegistry: 'billingapitresdev.azurecr.io'
     azureSubscriptionId: 'MSFT_Azure_Sponsorship_Gold'
     containerAppName: 'billling3-api-dev'
@@ -25,6 +26,7 @@ variables:
     imageRepository: 'billingapitres'
     openApiServerUrl: "dev.gw.cloudmt.co.kr/Billing"
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    buildConfiguration: 'Release'
     containerRegistry: 'billingapitresprd.azurecr.io'
     azureSubscriptionId: 'Azure-Subs-CM-PRD'
     containerAppName: 'billling3-api-prd'
