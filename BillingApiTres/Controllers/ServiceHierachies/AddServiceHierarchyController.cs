@@ -1,16 +1,12 @@
 ﻿using AutoMapper;
 using Billing.Data.Interfaces;
-using Billing.Data.Models;
-using Billing.EF.Repositories;
-using BillingApiTres.Controllers.Tenants;
+using Billing.Data.Models.Iam;
 using BillingApiTres.Converters;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
+using BillingApiTres.Models.Validations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Identity.Client;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Principal;
 
 namespace BillingApiTres.Controllers.ServiceHierachies
 {
@@ -25,6 +21,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         ITimeZoneConverter timeZoneConverter,
         ILogger<AddServiceHierarchyController> logger) : ControllerBase
     {
+        [AuthorizeAccountIdFilter([nameof(ServiceHierarchyAddRequest.ContractorId)])]
         [HttpPost("/service-organizations")]
         public async Task<ActionResult<ServiceHierarchyResponse>> Add(
             [FromBody]ServiceHierarchyAddRequest addRequest)
@@ -34,13 +31,8 @@ namespace BillingApiTres.Controllers.ServiceHierachies
 
             var tz = HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
 
-            var accountKeys = await accountKeyRepository
-                .GetIdList(new List<string>() { addRequest.ContractorKey, addRequest.ContracteeKey });
-
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
             var entity = mapper.Map<ServiceHierarchyAddRequest, ServiceHierarchy>(addRequest);
-            entity.ParentAccId = accountKeys.Where(ak => ak.AccountKey1 == addRequest.ContractorKey).First().AccountId;
-            entity.AccountId = accountKeys.Where(ak => ak.AccountKey1 == addRequest.ContracteeKey).First().AccountId;
             entity.SavedAt = DateTime.UtcNow;
             entity.SaverId = token?.Subject;
             entity.StartDate = timeZoneConverter.ConvertToUtc(addRequest.ContractDate, tz);
@@ -56,7 +48,6 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             var returnDto = mapper.Map<ServiceHierarchyResponse>(addedEntity, options =>
             {
                 options.Items["accounts"] = accounts;
-                options.Items["accountKeys"] = accountKeys;
                 options.Items["accountLink"] = accountLinks;
                 options.Items["accountUser"] = accountUsers;
                 options.Items["timezone"] = tz;

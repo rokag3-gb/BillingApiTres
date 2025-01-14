@@ -1,14 +1,13 @@
 ﻿using AutoMapper;
 using Billing.Data.Interfaces;
-using Billing.Data.Models;
-using Billing.Data.Models.Sale;
+using Billing.Data.Models.Iam;
 using BillingApiTres.Converters;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Dto;
+using BillingApiTres.Models.Validations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using Microsoft.VisualBasic;
+using System.Collections.Immutable;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace BillingApiTres.Controllers.ServiceHierachies
@@ -34,9 +33,16 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         [HttpGet("/service-organizations/{serialNo}")]
         public async Task<ActionResult<ServiceHierarchyResponse>> Get(long serialNo)
         {
+            var accountIds = HttpContext.Items[config["AccountHeader"]!] as ImmutableHashSet<long>;
+
             var response = await serviceHierachyRepository.Get(serialNo);
             if (response == null)
-                return NotFound(new { serialNo = serialNo });
+                return Ok(new());
+
+            var requestAccountIds = new[] { response.AccountId, response.ParentAccId };
+
+            if (accountIds?.Any(id => requestAccountIds.Contains(id)) == false)
+                return Forbid();
 
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
 
@@ -44,43 +50,41 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             if (response.ParentAccId > 0)
                 parentAccount = await gwClient.Get<SalesAccount>($"sales/account/{response.ParentAccId}", token?.RawData!);
             var account = await gwClient.Get<SalesAccount>($"sales/account/{response.AccountId}", token?.RawData!);
+
+            if (account == null)
+            {
+                logger.LogInformation($"대상 Account가 존재하지 않습니다 - ServiceHierarchy.AccountId : {response.AccountId}");
+                return Ok(new());
+            }
+
             var list = new List<SalesAccount> { parentAccount ?? new(), account };
 
-            parentAccount.AccountId = 0;
             var accountKeys = await accountKeyRepository.GetKeyList(new List<long> { account.AccountId });
 
             var accountLinks = await gwClient.Get<List<AccountLink>>($"sales/accountLink?limit=999999&offset=0&accountIdCsv={account.AccountId}", token?.RawData!);
             var accountUsers = await gwClient.Get<List<AccountUser>>($"sales/accountUser?limit=999999&offset=0&accountIdCsv={account.AccountId}", token?.RawData!);
+            var typeCodes = await gwClient.Get<List<SaleCode>>($"sales/code/SHT/childs", token?.RawData!);
 
             return mapper.Map<ServiceHierarchyResponse>(response, options =>
             {
                 options.Items["accounts"] = list;
-                options.Items["accountKeys"] = accountKeys;
                 options.Items["accountLink"] = accountLinks;
                 options.Items["accountUser"] = accountUsers;
                 options.Items["timezone"] =
                     HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
+                options.Items["type"] = typeCodes;
             });
         }
 
+        [AuthorizeAccountIdFilter([nameof(accountId)])]
         [HttpGet("/service-organizations/{accountId}/hierarchy")]
-        public async Task<ActionResult<List<ServiceHierarchyResponse>>> GetList(string accountId)
+        public async Task<ActionResult<List<ServiceHierarchyResponse>>> GetList(long accountId)
         {
-#if DEBUG
-            AccountKey account = new AccountKey();
-
-            if (long.TryParse(accountId, out long aid) && accountId.Length != 7)
-                account.AccountId = aid;
-            else
-                account = await accountKeyRepository.GetId(accountId);
-#else
-            var account = await accountKeyRepository.GetId(accountId);
-#endif
-            var parent = await serviceHierachyRepository.GetParent(account.AccountId);
+            var parent = await serviceHierachyRepository.GetParent(accountId);
             if (parent == null)
             {
-                logger.LogError($"계약 공급 업체를 찾을 수 없음 : account id - {accountId}");
-                return NoContent();
+                logger.LogInformation($"계약 공급 업체를 찾을 수 없음 : account id - {accountId}");
+                return Ok(Enumerable.Empty<ServiceHierarchyResponse>());
             }
 
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
@@ -93,11 +97,9 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             else
                 accountType = AccountType.Customer;
 
-            parent.ParentAccId = 0; //상위 계약 업체 정보 노출 방지
-
             if (accountType == AccountType.Acme)
             {
-                var partners = await serviceHierachyRepository.GetChild(account.AccountId);
+                var partners = await serviceHierachyRepository.GetChild(accountId);
                 var customers = await serviceHierachyRepository
                     .GetChild(partners.Select(p => p.AccountId).ToList());
 
@@ -107,11 +109,9 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             }
             else if (accountType == AccountType.Partner)
             {
-                var customers = await serviceHierachyRepository.GetChild(account.AccountId);
+                var customers = await serviceHierachyRepository.GetChild(accountId);
 
                 List<ServiceHierarchy> list = [parent, .. customers];
-
-                var accountKeys = await accountKeyRepository.GetKeyList(list.Select(a => a.AccountId).ToList());
 
                 return await MapResponse(list, token);
             }
@@ -121,12 +121,35 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             }
         }
 
+        [HttpGet("/service-organizations/noncontracts")]
+        public async Task<ActionResult<List<SalesAccount>>> GetNoncontractAccounts(
+            [FromQuery] NonContractAccountRequest request)
+        {
+            var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
+
+            var allContracts = await serviceHierachyRepository.All(request.Offset, request.Limit);
+            var allContractedIds = allContracts.Select(a => a.AccountId);
+
+            var accounts = await gwClient
+                .Get<List<SalesAccount>>($"sales/account?limit=999999",
+                                         token?.RawData!);
+            if (accounts == null)
+                return Ok(Enumerable.Empty<ServiceHierarchyResponse>());
+
+            accounts.RemoveAll(a => allContractedIds.Contains(a.AccountId));
+            return accounts;
+        }
+
         private async Task<List<ServiceHierarchyResponse>> MapResponse(List<ServiceHierarchy> list, JwtSecurityToken token)
         {
             var ids = list.SelectMany(a => new[] { a.ParentAccId, a.AccountId }).Distinct().ToList();
             var accounts = await gwClient
                 .Get<List<SalesAccount>>($"sales/account?limit=999999&accountIds={string.Join(",", ids)}",
                                          token?.RawData!);
+            var accountIds = accounts.Select(a => a.AccountId).ToHashSet();
+            list = list.Where(sh => accountIds.Contains(sh.AccountId))
+                       .Where(sh => sh.ParentAccId == 0 || accountIds.Contains(sh.ParentAccId))
+                       .ToList();
 
             var accountLinks = await gwClient
                 .Get<List<AccountLink>>($"sales/accountLink?limit=999999&offset=0&accountIdCsv={string.Join(",", list.Select(a => a.AccountId))}",
@@ -136,17 +159,16 @@ namespace BillingApiTres.Controllers.ServiceHierachies
                 .Get<List<AccountUser>>($"sales/accountUser?limit=999999&offset=0&accountIdCsv={string.Join(",", list.Select(a => a.AccountId))}",
                                         token?.RawData!);
 
-            var accountKeys = await accountKeyRepository
-                .GetKeyList(ids);
+            var typeCodes = await gwClient.Get<List<SaleCode>>($"sales/code/SHT/childs", token?.RawData!);
 
             return mapper.Map<List<ServiceHierarchyResponse>>(list, opt =>
             {
                 opt.Items["accounts"] = accounts;
-                opt.Items["accountKeys"] = accountKeys;
                 opt.Items["accountLink"] = accountLinks;
                 opt.Items["accountUser"] = accountUsers;
                 opt.Items["timezone"] = 
                     HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
+                opt.Items["type"] = typeCodes;
             });
         }
     }

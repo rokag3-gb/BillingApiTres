@@ -12,6 +12,9 @@ resources:
 variables:
   tag: '$(Build.BuildId)'
   latestTag: "latest"  
+  docsSrcPath: '$(Build.SourcesDirectory)/SDTeam-Docs'
+  projPath: '$(Build.SourcesDirectory)/BillingApiTres/BillingApiTres'
+  vmImageName: 'ubuntu-latest'
   ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
     containerRegistry: 'billingapitresdev.azurecr.io'
     azureSubscriptionId: 'MSFT_Azure_Sponsorship_Gold'
@@ -20,6 +23,7 @@ variables:
     containerRegistryName: BillingApiTresDev
     containerRegistryPassword: $(dev-registry-password)
     imageRepository: 'billingapitres'
+    openApiServerUrl: "dev.gw.cloudmt.co.kr/Billing"
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     containerRegistry: 'billingapitresprd.azurecr.io'
     azureSubscriptionId: 'Azure-Subs-CM-PRD'
@@ -28,6 +32,7 @@ variables:
     containerRegistryName: BillingApiTresPrd
     containerRegistryPassword: $(prd-registry-password)
     imageRepository: 'billingapitres'
+    openApiServerUrl: "gw.cloudmt.co.kr/Billing"
 
 stages:
 - stage: Build
@@ -68,3 +73,50 @@ stages:
         containerAppName: $(containerAppName)
         resourceGroup: $(containerAppRg)
         imageToDeploy: '$(containerRegistry)/$(imageRepository):$(tag)'
+  - job: Docs
+    displayName: Docs
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+      - checkout: self
+        submodules: recursive
+      - checkout: git://SDTeam-Project/SDTeam-Docs
+        persistCredentials: true
+        clean: true
+      - task: UseDotNet@2
+        inputs:
+          version: '8.x'
+      - task: DotNetCoreCLI@2
+        displayName: Restore dependencies
+        inputs:
+          command: 'restore'
+          projects: '**/BillingApiTres/*.csproj'
+          workingDirectory: $(projPath)
+      - script: dotnet tool restore
+        displayName: Restore Tools
+        workingDirectory: $(projPath)
+      - task: DotNetCoreCLI@2
+        displayName: Build project
+        inputs:
+          command: 'build'
+          projects: '**/BillingApiTres.csproj'
+          arguments: -c Release -o ./app/build
+          workingDirectory: $(projPath)
+      - script: dotnet swagger tofile --output ./openapi.json ./app/build/BillingApiTres.dll v1
+        displayName: Generate OpenAPI Doc file
+        workingDirectory: $(projPath)
+      - script: |
+          sudo apt install -y jq
+          cat ./openapi.json | jq --arg server_url $(openApiServerUrl) '. + {servers:[{url: $server_url}]}' > openapi1.json
+          mv openapi1.json openapi.json
+        displayName: Add Server URL to OpenAPI Doc
+        workingDirectory: $(projPath)
+      - script: |
+          cp $(projPath)/openapi.json $(docsSrcPath)/content/ko/json/billing3api-$(Build.SourceBranchName).json
+          git config user.name "Billing3 API Pipeline"
+          git config user.email "sdev@cloudmt.co.kr"
+          git add content/ko/json/billing3api-$(Build.SourceBranchName).json
+          git commit -m "Update Billing 3 API OpenAPI Doc - Build ID: $(Build.BuildId)"
+          git push origin HEAD:main
+        displayName: Copy and push OpenAPI Doc file
+        workingDirectory: $(docsSrcPath)

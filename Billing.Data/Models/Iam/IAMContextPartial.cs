@@ -1,12 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Billing.Data.Models.Iam;
+using Microsoft.EntityFrameworkCore;
 
-namespace Billing.Data.Models
+namespace Billing.Data.Models.Iam
 {
     public partial class IAMContext
     {

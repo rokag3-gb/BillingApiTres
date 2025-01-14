@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using Billing.Data.Interfaces;
+using Billing.Data.Models.Iam;
 using BillingApiTres.Converters;
 using BillingApiTres.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Immutable;
 
 namespace BillingApiTres.Controllers.ServiceHierachies
 {
@@ -26,6 +28,10 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             if (entity == null)
                 return Conflict($"대상이 존재하지 않습니다 : {updateRequest}");
 
+            var accountIds = HttpContext.Items[config["AccountHeader"]!] as ImmutableHashSet<long>;
+            if (accountIds?.Contains(entity.AccountId) == false)
+                return Forbid();
+
             var tz = HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
 
             entity.IsActive = updateRequest.IsActive ?? entity.IsActive;
@@ -35,12 +41,12 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             if (updateRequest.ExpireDate.HasValue)
                 entity.EndDate = timeZoneConverter.ConvertToUtc(updateRequest.ExpireDate.Value, tz);
 
-            foreach (var updateConfig in updateRequest.Configs.OrderBy(c => c.ConfigId) ?? Enumerable.Empty<ServiceHierarchyConfigUpdateRequest>())
+            foreach (var updateConfig in updateRequest.Configs?.OrderBy(c => c.ConfigId) ?? Enumerable.Empty<ServiceHierarchyConfigUpdateRequest>())
             {
                 if (updateConfig.ConfigId is null || updateConfig.ConfigId == 0)
                 {
                     entity.ServiceHierarchyConfigs.Add(
-                        new Billing.Data.Models.ServiceHierarchyConfig
+                        new ServiceHierarchyConfig
                         {
                             Sno = entity.Sno,
                             ConfigCode = updateConfig.Code,

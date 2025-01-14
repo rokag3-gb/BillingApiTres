@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
 using AutoMapper.Configuration.Annotations;
-using Billing.Data.Models;
+using Billing.Data.Models.Iam;
 using BillingApiTres.Models.Validations;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace BillingApiTres.Models.Dto
 {

@@ -1,19 +1,19 @@
 ﻿using Billing.Data.Interfaces;
-using Billing.Data.Models;
 using Billing.Data.Models.Bill;
+using Billing.Data.Models.Iam;
 using Billing.Data.Models.Sale;
 using Billing.EF.Repositories;
 using BillingApiTres.Converters;
+using BillingApiTres.Extensions;
+using BillingApiTres.Helper;
 using BillingApiTres.Models.Clients;
-using BillingApiTres.Models.Dto;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.IdentityModel.Tokens.Jwt;
+using System.Text.Json.Serialization;
 
 
 [assembly: ApiController]
@@ -31,14 +31,23 @@ namespace BillingApiTres
             builder.Services.AddScoped<IServiceHierarchyRepository, ServiceHierarchyRepository>();
             builder.Services.AddScoped<IAccountKeyRepository, AccountKeyRepository>();
             builder.Services.AddScoped<IBillRepository, BillRepository>();
+            builder.Services.AddScoped<IBillItemRepository, BillItemRepository>();
+            builder.Services.AddScoped<INcpRepository, NcpRepository>();
+            builder.Services.AddScoped<IBillRoleRepository, BillRoleRepository>();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
             #endregion
 
             #region regist Http Client
-            builder.Services.AddHttpClient<AcmeGwClient>(c => c.BaseAddress = new Uri(builder.Configuration["sales_url"]!));
+            builder.Services.AddHttpClient<AcmeGwClient>(c => c.BaseAddress = new Uri(builder.Configuration["gateway_url"]!));
+            builder.Services.AddHttpClient<ServiceAccountTokenClient>(c => c.BaseAddress = new Uri(builder.Configuration["gateway_url"]!));
             #endregion
 
             builder.Services.AddTransient<CurrencyConverter>();
             builder.Services.AddTransient<ITimeZoneConverter, IanaDatetimeConverter>();
+            
+            builder.Services.AddSingleton<ServiceAccountTokenStorage>();
+            builder.Services.Configure<ServiceAccountRequestBody>(
+                builder.Configuration.GetSection("ServiceAccount"));
 
             builder.Services.AddMapperBillingTypes();
 
@@ -56,12 +65,18 @@ namespace BillingApiTres
                     };
                 });
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "Billing3", Version = "v1" });
+                options.SchemaFilter<EnumSchemaSwaggerFilter>();
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "BillingApiTres.xml"));
 
                 var securityScheme = new OpenApiSecurityScheme
@@ -87,12 +102,14 @@ namespace BillingApiTres
                                 Type = ReferenceType.SecurityScheme,
                                 Id = "Bearer"
                             }
-                        }, 
+                        },
                         new string[] {}
                     }
                 });
 
+                //#if DEBUG
                 options.OperationFilter<SwaggerCustomHeader>();
+                //#endif
             });
 
             builder.Services.AddDbContext<IAMContext>(options =>
@@ -128,6 +145,7 @@ namespace BillingApiTres
             app.MapControllers();
 
             app.UseTimezoneHeaderChecker();
+            app.UseAccountHeaderChecker();
 
             app.Run();
         }

@@ -15,14 +15,129 @@ public partial class BillContext : DbContext
 
     public virtual DbSet<Bill> Bills { get; set; }
 
+    public virtual DbSet<BillItem> BillItems { get; set; }
+
+    public virtual DbSet<BillingRole> BillingRoles { get; set; }
+
+    public virtual DbSet<NcpDetail> NcpDetails { get; set; }
+
+    public virtual DbSet<NcpMaster> NcpMasters { get; set; }
+
+    public virtual DbSet<NcpMember> NcpMembers { get; set; }
+
+    public virtual DbSet<Product> Products { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Bill>(entity =>
         {
             entity.HasKey(e => e.BillId).HasName("PK_Bill_BillId");
 
-            entity.Property(e => e.SavedAt).HasDefaultValueSql("(dateadd(hour,(-9),getdate()))");
-            entity.Property(e => e.TotalAmount).HasComputedColumnSql("(CONVERT([money],[Amount]+[Tax]))", true);
+            entity.ToTable("Bill", tb => tb.HasComment("청구서 마스터 테이블"));
+
+            entity.Property(e => e.BillId).HasComment("청구번호");
+            entity.Property(e => e.Amount).HasComment("공급가액");
+            entity.Property(e => e.BillDate).HasComment("청구일(UTC)");
+            entity.Property(e => e.BillMonthKst).HasComputedColumnSql("(CONVERT([varchar](6),dateadd(hour,(9),[BillDate]),(112)))", true);
+            entity.Property(e => e.BuyerAccountId).HasComment("공급받는자 AccountId");
+            entity.Property(e => e.BuyerManagerId).HasComment("공급받는자 Account 담당자");
+            entity.Property(e => e.ConsumptionAccountId).HasComment("클라우드 사용 고객사");
+            entity.Property(e => e.ConsumptionAmount).HasComment("클라우드 사용액");
+            entity.Property(e => e.ConsumptionEndDate).HasComment("nullable. 클라우드 사용 종료일(UTC)");
+            entity.Property(e => e.ConsumptionStartDate).HasComment("nullable. 클라우드 사용 시작일(UTC)");
+            entity.Property(e => e.CurrencyCode).HasComment("청구통화코드 #CUR (E.g., KRW, JPY)");
+            entity.Property(e => e.DiscountAmount).HasComment("할인액");
+            entity.Property(e => e.ExtraAmount).HasComment("추가청구액");
+            entity.Property(e => e.KeyId).HasComment("최초 CSP의 매입 데이터를 반영해 놓을 때에만 필요. 다른 경우에는 사용하지 않음");
+            entity.Property(e => e.Remark).HasComment("비고");
+            entity.Property(e => e.SavedAt)
+                .HasDefaultValueSql("(dateadd(hour,(-9),getdate()))")
+                .HasComment("Default: current_timestamp");
+            entity.Property(e => e.SellerAccountId).HasComment("공급자 AccountId");
+            entity.Property(e => e.SellerManagerId).HasComment("공급자 Account 담당자");
+            entity.Property(e => e.StatusCode).HasComment("청구서 상태코드 E.g., draft, fixed, public");
+            entity.Property(e => e.Tax).HasComment("세액");
+            entity.Property(e => e.TotalAmount)
+                .HasComputedColumnSql("(CONVERT([money],[Amount]+[Tax]))", true)
+                .HasComment("공급대가 (공급가액+세액)");
+        });
+
+        modelBuilder.Entity<BillItem>(entity =>
+        {
+            entity.HasKey(e => e.BillItemId).HasName("PK_BillItem_BillItemId");
+
+            entity.Property(e => e.BillItemId).HasComment("청구품목번호");
+            entity.Property(e => e.Amount).HasComment("공급가액");
+            entity.Property(e => e.BillId).HasComment("청구번호");
+            entity.Property(e => e.CurrencyCode).HasComment("청구통화코드 #CUR (E.g., KRW, JPY)");
+            entity.Property(e => e.Description).HasComment("적요");
+            entity.Property(e => e.ProductId).HasComment("상품번호 -> e.g., NCP, AWS, 매니지드서비스, 프로모션할인");
+            entity.Property(e => e.SavedAt)
+                .HasDefaultValueSql("(dateadd(hour,(-9),getdate()))")
+                .HasComment("Default: current_timestamp");
+
+            entity.HasOne(d => d.Bill).WithMany(p => p.BillItems)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BillItem_BillId");
+
+            entity.HasOne(d => d.Product).WithMany(p => p.BillItems).HasConstraintName("FK_BillItem_ProductId");
+        });
+
+        modelBuilder.Entity<BillingRole>(entity =>
+        {
+            entity.HasKey(e => e.Sno).IsClustered(false);
+
+            entity.HasIndex(e => e.RoleId, "Idx_unique_BillingRole_RoleId")
+                .IsUnique()
+                .IsClustered();
+        });
+
+        modelBuilder.Entity<NcpDetail>(entity =>
+        {
+            entity.HasKey(e => e.DetailLineId)
+                .HasName("PK_NCP_Detail_DetailLineId")
+                .IsClustered(false);
+
+            entity.HasIndex(e => new { e.BatchDate, e.KeyId }, "idx_NCP_Detail_batchDate_KeyId").IsClustered();
+
+            entity.Property(e => e.BatchDate).HasComputedColumnSql("(CONVERT([date],[writeDate]))", true);
+            entity.Property(e => e.KeyId).HasComputedColumnSql("(CONVERT([varchar](500),concat([demandMonth],'-',[zone],'-',[account],'-',[memberNo])))", true);
+        });
+
+        modelBuilder.Entity<NcpMaster>(entity =>
+        {
+            entity.HasKey(e => e.LineId)
+                .HasName("PK_NCP_Master_LineId")
+                .IsClustered(false);
+
+            entity.HasIndex(e => new { e.BatchDate, e.DemandMonth, e.Zone, e.Account, e.MemberNo }, "idx_NCP_Master_batchDate_demandMonth_zone_account_memberNo")
+                .IsUnique()
+                .IsClustered();
+
+            entity.Property(e => e.BatchDate).HasComputedColumnSql("(CONVERT([date],[writeDate]))", true);
+            entity.Property(e => e.KeyId).HasComputedColumnSql("(CONVERT([varchar](500),concat([demandMonth],'-',[zone],'-',[account],'-',[memberNo])))", true);
+        });
+
+        modelBuilder.Entity<NcpMember>(entity =>
+        {
+            entity.HasKey(e => e.MemberNo).HasName("PK_NCP_Member_memberNo");
+        });
+
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.HasKey(e => e.ProductId).HasName("PK_Product_ProductId");
+
+            entity.ToTable("Product", tb => tb.HasComment("제공 상품 정보"));
+
+            entity.Property(e => e.ProductId).HasComment("상품번호");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasComment("Default:1 활성여부");
+            entity.Property(e => e.ProductName).HasComment("상품명");
+            entity.Property(e => e.Remark).HasComment("비고");
+            entity.Property(e => e.SavedAt)
+                .HasDefaultValueSql("(dateadd(hour,(-9),getdate()))")
+                .HasComment("Default: current_timestamp");
         });
 
         OnModelCreatingPartial(modelBuilder);

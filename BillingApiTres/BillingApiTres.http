@@ -1,6 +1,85 @@
-@BillingApiTres_HostAddress = http://localhost:5152
+﻿@BillingApiTres_HostAddress = https://localhost:7127
+@authToken = bearer 
 
 GET {{BillingApiTres_HostAddress}}/weatherforecast/
 Accept: application/json
+
+###
+
+GET {{BillingApiTres_HostAddress}}/accountUsers?accountId=1
+X-Account: 1
+authorization: {{authToken}}
+X-TimeZone : Asia/Seoul
+
+###
+
+PUT {{BillingApiTres_HostAddress}}/bills
+Content-Type: application/json
+X-Account: 1
+authorization: {{authToken}}
+X-TimeZone : Asia/Seoul
+
+{
+  "statusCode": "BST-EXT",
+  "billIds" : [634, 635, 636]
+}
+
+###
+
+PUT {{BillingApiTres_HostAddress}}/bills
+Content-Type: application/json
+X-Account: 1
+authorization: {{authToken}}
+X-TimeZone : Asia/Seoul
+
+{
+  "statusCode": "BST-001",
+  "billIds" : [634, 635, 636]
+}
+
+###
+
+#일단위 사용량 조회 (월 중간 부터)
+GET {{BillingApiTres_HostAddress}}/usages?usageUnit=daily&accountIds=11214&from=2024-12-03+05%3A00%3A00&to=2024-12-05+17%3A59%3A59
+X-Account: 1,11214
+authorization: {{authToken}}
+X-TimeZone : Asia/Seoul
+
+###
+
+#일단위 사용량 조회 (월초 부터)
+GET {{BillingApiTres_HostAddress}}/usages?usageUnit=daily&accountIds=11214&from=2024-12-01+13%3A00%3A00&to=2024-12-03+03%3A59%3A59
+X-Account: 1,11214
+authorization: {{authToken}}
+X-TimeZone : Asia/Seoul
+
+###
+
+#월단위 사용량 조회
+GET {{BillingApiTres_HostAddress}}/usages?usageUnit=monthly&accountIds=11214&from=2024-11-08+07%3A00%3A00&to=2024-12-01+15%3A59%3A59
+X-Account: 1,11214
+authorization: {{authToken}}
+X-TimeZone : Asia/Seoul
+
+###
+
+# 고객 청구서 생성
+POST {{BillingApiTres_HostAddress}}/bills/customer
+Content-Type: application/json
+X-Account: 1,11214
+authorization: {{authToken}}
+X-TimeZone : Asia/Seoul
+
+{
+  "billIds" : [1760, 1774, 1945, 1781, 1784, 1785, 1808, 1838, 2050]
+}
+
+###
+
+# 청구서 조회
+GET {{BillingApiTres_HostAddress}}/bills?from=2022-10-10&to=2025-10-10&AccountIds=1
+X-Account: 1,11214,11343
+authorization: {{authToken}}
+X-TimeZone : Asia/Seoul
 
 ###

@@ -1,9 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.Configuration.Annotations;
-using Billing.Data.Models;
-using BillingApiTres.Models.Validations;
+using Billing.Data.Models.Iam;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace BillingApiTres.Models.Dto
 {
@@ -16,19 +14,11 @@ namespace BillingApiTres.Models.Dto
 
         [Required]
         [SourceMember(nameof(ServiceHierarchy.ParentAccId))]
-        [JsonIgnore]
         public long ContractorId { get; set; }
-
-        [JsonPropertyName("contractorId")]
-        public string ContractorKey { get; set; }
 
         [Required]
         [SourceMember(nameof(ServiceHierarchy.AccountId))]
-        [JsonIgnore]
         public long ContracteeId { get; set; }
-
-        [JsonPropertyName("contracteeId")]
-        public string ContracteeKey { get; set; }
 
         [Required]
         [SourceMember(nameof(ServiceHierarchy.IsActive))]
@@ -46,5 +36,8 @@ namespace BillingApiTres.Models.Dto
 
         [SourceMember(nameof(ServiceHierarchy.ServiceHierarchyConfigs))]
         public ICollection<ServiceHierarchyConfigAddRequest>? Configs { get; set; }
+
+        [SourceMember(nameof(ServiceHierarchy.TypeCode))]
+        public string? Type { get; set; }
     }
 }

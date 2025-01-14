@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.Configuration.Annotations;
-using Billing.Data.Models;
-using System.Text.Json.Serialization;
+using Billing.Data.Models.Iam;
 
 namespace BillingApiTres.Models.Dto
 {
@@ -14,17 +13,11 @@ namespace BillingApiTres.Models.Dto
         public string TenantId { get; set; }
         //[SourceMember(nameof(ServiceHierarchy.Tenant.RealmName))]
         public string RealmName { get; set; }
-        [JsonIgnore]
         [SourceMember(nameof(ServiceHierarchy.ParentAccId))]
         public long ContractorId { get; set; }
-        [JsonPropertyName("contractorId")]
-        public string ContractorKey { get; set; }
         public string? ContractorName { get; set; }
-        [JsonIgnore]
         [SourceMember(nameof(ServiceHierarchy.AccountId))]
         public long ContracteeId { get; set; }
-        [JsonPropertyName("contracteeId")]
-        public string ContracteeKey { get; set; }
         public string ContracteeName { get; set; }
         [SourceMember(nameof(ServiceHierarchy.IsActive))]
         public bool IsActive { get; set; }
@@ -34,6 +27,9 @@ namespace BillingApiTres.Models.Dto
         public DateTime ExpireDate { get; set; }
         [SourceMember(nameof(ServiceHierarchy.ServiceHierarchyConfigs))]
         public ICollection<ServiceHierarchyConfigResponse>? Configs { get; set; }
+        [SourceMember(nameof(ServiceHierarchy.TypeCode))]
+        public string? Type { get; set; }
+        public string? TypeName { get; set; }
         public int AccountUserCount { get; set; }
         public int AccountLinkCount { get; set; }
     }

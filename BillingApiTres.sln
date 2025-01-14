@@ -13,6 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillingApi.Test", "BillingA
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillingApi.Integration.Test", "BillingApi.Integration.Test\BillingApi.Integration.Test.csproj", "{BB2D5F00-3722-407A-B128-1AB3B99C33AF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{80CDAB77-EB3C-4949-85C2-E159C2B497C9}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,13 +37,9 @@ Global
 		{05E26D09-69DF-4091-869D-DFC1E9E84F83}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{05E26D09-69DF-4091-869D-DFC1E9E84F83}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9EA438E5-6872-42A6-AEB3-2BD3D67B5770}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9EA438E5-6872-42A6-AEB3-2BD3D67B5770}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9EA438E5-6872-42A6-AEB3-2BD3D67B5770}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9EA438E5-6872-42A6-AEB3-2BD3D67B5770}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BB2D5F00-3722-407A-B128-1AB3B99C33AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BB2D5F00-3722-407A-B128-1AB3B99C33AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB2D5F00-3722-407A-B128-1AB3B99C33AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BB2D5F00-3722-407A-B128-1AB3B99C33AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace Billing.Data.Models;
+namespace Billing.Data.Models.Iam;
 
 public partial class IAMContext : DbContext
 {
