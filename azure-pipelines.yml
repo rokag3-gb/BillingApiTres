@@ -24,7 +24,7 @@ variables:
     containerRegistryName: BillingApiTresDev
     containerRegistryPassword: $(dev-registry-password)
     imageRepository: 'billingapitres'
-    openApiServerUrl: "dev.gw.cloudmt.co.kr/Billing"
+    openApiServerUrl: "https://dev.gw.ahnlabcloudmate.com/Billing"
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     buildConfiguration: 'Release'
     containerRegistry: 'billingapitresprd.azurecr.io'
