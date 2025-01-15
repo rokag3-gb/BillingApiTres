@@ -29,6 +29,10 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             if (addRequest == null)
                 return BadRequest(new ArgumentNullException(nameof(addRequest)));
 
+            var isInvalid = serviceHierarchyRepository.CheckInvalidation(addRequest.ContractorId, addRequest.ContracteeId);
+            if (isInvalid)
+                return BadRequest("유효하지 않은 account 설정 입니다");
+
             var tz = HttpContext.Request.Headers[$"{config.GetValue<string>("TimezoneHeader")}"];
 
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);

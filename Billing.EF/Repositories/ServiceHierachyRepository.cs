@@ -73,6 +73,21 @@ namespace Billing.EF.Repositories
             return query.ToList();
         }
 
+        public bool CheckInvalidation(long parentAccountId, long accountId)
+        {
+            ///중복 / 이중 계약 또는 순환 관계
+            if (iamContext.ServiceHierarchies.Any(s => s.AccountId == accountId 
+                                                       || (s.ParentAccId == accountId && s.AccountId == parentAccountId)))
+                return true;
+
+            var parent = iamContext.ServiceHierarchies.FirstOrDefault(s => s.AccountId == parentAccountId);
+            ///잘못된 부모 설정
+            if (parent == null || parent.TypeCode == "SHT-CUS")
+                return true;
+
+            return false;
+        }
+
         public async Task Update(ServiceHierarchy entity)
         {
             using var trans = await iamContext.Database.BeginTransactionAsync();

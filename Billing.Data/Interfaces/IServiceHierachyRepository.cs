@@ -6,6 +6,7 @@ namespace Billing.Data.Interfaces
     {
         Task<ServiceHierarchy> Add(ServiceHierarchy entity);
         Task<List<ServiceHierarchy>> All(int? offset, int? limit);
+        bool CheckInvalidation(long parentAccountId, long accountId);
         Task Delete(ServiceHierarchy entity);
         Task<ServiceHierarchy?> Get(long serialNo);
         Task<List<ServiceHierarchy>> GetChild(long parentAccountId);
