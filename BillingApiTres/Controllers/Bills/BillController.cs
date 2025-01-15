@@ -428,6 +428,7 @@ namespace BillingApiTres.Controllers.Bills
             var configCode = config.GetSection(nameof(ContractChargeCode)).Get<ContractChargeCode>() ?? new ContractChargeCode();
             var productCode = config.GetSection(nameof(ProductCode)).Get<ProductCode>() ?? new ProductCode();
             var mspChargeProduct = _products?.FirstOrDefault(p => p.ProductCode == productCode?.NcpManagedService);
+            var cutoffProduct = _products?.FirstOrDefault(p => p.ProductCode == productCode?.Cutoff100);
 
             if (mspChargeProduct == null)
             {
@@ -439,6 +440,15 @@ namespace BillingApiTres.Controllers.Bills
                 return response;
             }
 
+            if (cutoffProduct == null)
+            {
+                logger.LogCritical($"네이버 클라우드 100원 미만 절사 상품을 찾을 수 없습니다. " +
+                    $"Bill.dbo.Product 테이블 혹은 어플리케이션 구성 요소 ProductCode를 확인하세요" +
+                    $"Configuration production code : {productCode?.Cutoff100 ?? "ProductCode 구성 요소 없음"}");
+                response.AddFail(StatusCodes.Status424FailedDependency, billItems.Select(bi => bi.Bill.OriginalBillId));
+                return response;
+            }
+
             foreach (var billItem in billItems)
             {
                 var mspConfig = billItem.Bill.ServiceHierarchyConfigs
@@ -446,6 +456,9 @@ namespace BillingApiTres.Controllers.Bills
 
                 if (mspConfig?.ConfigValue > 0)
                     AddMspCharge(mspChargeProduct, billItem, mspConfig);
+
+                if (billItem.Bill.Amount % 100 > 0)
+                    CutoffUnderHundred(cutoffProduct, billItem);
             }
 
             return response;
