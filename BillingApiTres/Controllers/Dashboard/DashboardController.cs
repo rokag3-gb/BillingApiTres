@@ -191,7 +191,7 @@ namespace BillingApiTres.Controllers.Dashboard
             if (HttpContext.AuthenticateAccountId(accountIds) == false)
                 return Forbid();
 
-            var datas = billRepository.GetRangeWithRelations(requestFrom, requestTo, accountIds.ToList(), null, null);
+            var datas = billRepository.GetRangeWithRelations(requestFrom, requestTo, accountIds.ToList(), null, null, null, true);
             datas.ForEach(d => d.BillDate = timeZoneConverter.ConvertToLocal(d.BillDate, tz!));
 
             var group = datas.SelectMany(b => b.BillItems).GroupBy(bi => bi.ProductId);

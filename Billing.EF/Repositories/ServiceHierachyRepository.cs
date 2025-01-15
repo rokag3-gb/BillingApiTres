@@ -1,14 +1,8 @@
 ﻿using Billing.Data.Interfaces;
 using Billing.Data.Models.Iam;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Markup;
+using System.Linq.Expressions;
 
 namespace Billing.EF.Repositories
 {
@@ -53,6 +47,45 @@ namespace Billing.EF.Repositories
                 .Include(s => s.Tenant)
                 .Include(s => s.ServiceHierarchyConfigs)
                 .FirstOrDefaultAsync(s => s.Sno == serialNo);
+        }
+
+        public List<ServiceHierarchy> GetList(IEnumerable<long>? accountIds = null, IEnumerable<string>? typeCodes = null)
+        {
+            var query = iamContext.ServiceHierarchies
+                .Include(s => s.ServiceHierarchyConfigs)
+                .AsQueryable();
+
+            var predicate = PredicateBuilder.False<ServiceHierarchy>();
+
+            if (accountIds?.Any() == true)
+                predicate = predicate.Or(s => accountIds.Contains(s.AccountId));
+
+            if (typeCodes?.Any() == true)
+                predicate = predicate.Or(s => typeCodes.Contains(s.TypeCode));
+
+            if (predicate.Body.NodeType == ExpressionType.Constant &&
+                predicate.Body.ToString() == false.ToString())
+            {
+                predicate = PredicateBuilder.True<ServiceHierarchy>();
+            }
+
+            query = query.Where(predicate);
+            return query.ToList();
+        }
+
+        public bool CheckInvalidation(long parentAccountId, long accountId)
+        {
+            ///중복 / 이중 계약 또는 순환 관계
+            if (iamContext.ServiceHierarchies.Any(s => s.AccountId == accountId 
+                                                       || (s.ParentAccId == accountId && s.AccountId == parentAccountId)))
+                return true;
+
+            var parent = iamContext.ServiceHierarchies.FirstOrDefault(s => s.AccountId == parentAccountId);
+            ///잘못된 부모 설정
+            if (parent == null || parent.TypeCode == "SHT-CUS")
+                return true;
+
+            return false;
         }
 
         public async Task Update(ServiceHierarchy entity)

@@ -9,8 +9,9 @@ namespace Billing.Data.Models.Bill
 {
     public partial class NcpDetail
     {
-        [ForeignKey("KeyId")]
-        [InverseProperty("NcpDetails")]
+        //[ForeignKey("KeyId")]
+        //[InverseProperty("NcpDetails")]
+        [NotMapped]
         public virtual BillItem BillItem { get; set; } = null!;
     }
 }

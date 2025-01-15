@@ -32,6 +32,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[NCP_MarginExceptProduct]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[NCP_Master]",
          "ObjectType": 0
       },

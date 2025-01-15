@@ -87,6 +87,8 @@ namespace BillingApiTres.Models.Clients
         public long AccountId { get; set; }
         [JsonPropertyName("accountName")]
         public string AccountName { get; set; }
+        [JsonPropertyName("managerId")]
+        public string ManagerId { get; set; }
     }
 
     public record SaleCode
