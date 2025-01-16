@@ -5,14 +5,13 @@ namespace Billing.Data.Interfaces
     public interface IServiceHierarchyRepository
     {
         Task<ServiceHierarchy> Add(ServiceHierarchy entity);
-        Task<List<ServiceHierarchy>> All(int? offset, int? limit);
         bool CheckInvalidation(long parentAccountId, long accountId);
         Task Delete(ServiceHierarchy entity);
-        Task<ServiceHierarchy?> Get(long serialNo);
-        Task<List<ServiceHierarchy>> GetChild(long parentAccountId);
-        Task<List<ServiceHierarchy>> GetChild(List<long> parentAccountIds);
-        List<ServiceHierarchy> GetList(IEnumerable<long>? accountIds = null, IEnumerable<string>? typeCodes = null);
-        Task<ServiceHierarchy?> GetParent(long accountId);
+        Task<ServiceHierarchy?> Get(long serialNo, bool? isActive = null);
+        Task<List<ServiceHierarchy>> GetChild(long parentAccountId, bool? isActive = null);
+        Task<List<ServiceHierarchy>> GetChild(List<long> parentAccountIds, bool? isActive = null);
+        List<ServiceHierarchy> GetList(IEnumerable<long>? accountIds, IEnumerable<string>? typeCodes, bool? isActive = null, int? offset = null, int? limit = null);
+        Task<ServiceHierarchy?> GetParent(long accountId, bool? isActive = null);
         Task Update(ServiceHierarchy entity);
     }
 }
