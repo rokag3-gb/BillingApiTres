@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
 
+using Serilog;
 
 [assembly: ApiController]
 namespace BillingApiTres
@@ -24,6 +25,9 @@ namespace BillingApiTres
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            
+            builder.ConfigureObservabilities();
 
             // Add services to the container.
             #region regist repositories
@@ -128,10 +132,22 @@ namespace BillingApiTres
                 options.EnableSensitiveDataLogging();
             });
 
+            
 
             var app = builder.Build();
-
             app.UseAuthentication();
+
+            app.UseSerilogRequestLogging(options =>
+            {
+                options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+                {
+                    diagnosticContext.Set(
+                        "User", 
+                        JwtConverter.ExtractJwtToken(httpContext.Request)?.Claims
+                                    .FirstOrDefault(c => c.Type == "email")?.Value ?? "not set user email");
+                };
+            });
+
             app.UseAuthorization();
 
             // Configure the HTTP request pipeline.
