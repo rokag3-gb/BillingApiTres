@@ -360,7 +360,8 @@ namespace BillingApiTres.Controllers.Bills
                                        && b.BuyerAccountId == s.BuyerAccountId
                                        && b.Amount == s.Amount));
 
-            response.AddFail(StatusCodes.Status409Conflict, duplicatBills.Select(db => db.OriginalBillId));
+            if (duplicatBills.Any())
+                response.AddFail(StatusCodes.Status409Conflict, duplicatBills.Select(db => db.OriginalBillId));
             return response;
         }
 
