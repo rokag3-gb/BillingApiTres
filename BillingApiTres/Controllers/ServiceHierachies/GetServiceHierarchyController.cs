@@ -76,11 +76,17 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             });
         }
 
+        /// <summary>
+        /// 대상 업체와 계약 관계가 있는 업체를 조회합니다.
+        /// </summary>
+        /// <param name="accountId">조회 대상 업체 account id</param>
+        /// <param name="isActive">활성화 여부 조건. 없으면 전체 조회</param>
+        /// <returns></returns>
         [AuthorizeAccountIdFilter([nameof(accountId)])]
         [HttpGet("/service-organizations/{accountId}/hierarchy")]
-        public async Task<ActionResult<List<ServiceHierarchyResponse>>> GetList(long accountId)
+        public async Task<ActionResult<List<ServiceHierarchyResponse>>> GetList(long accountId, bool? isActive = null)
         {
-            var parent = await serviceHierachyRepository.GetParent(accountId);
+            var parent = await serviceHierachyRepository.GetParent(accountId, isActive);
             if (parent == null)
             {
                 logger.LogInformation($"계약 공급 업체를 찾을 수 없음 : account id - {accountId}");
@@ -99,9 +105,9 @@ namespace BillingApiTres.Controllers.ServiceHierachies
 
             if (accountType == AccountType.Acme)
             {
-                var partners = await serviceHierachyRepository.GetChild(accountId);
+                var partners = await serviceHierachyRepository.GetChild(accountId, isActive);
                 var customers = await serviceHierachyRepository
-                    .GetChild(partners.Select(p => p.AccountId).ToList());
+                    .GetChild(partners.Select(p => p.AccountId).ToList(), isActive);
 
                 List<ServiceHierarchy> list = [parent, .. partners, .. customers];
 
@@ -109,7 +115,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
             }
             else if (accountType == AccountType.Partner)
             {
-                var customers = await serviceHierachyRepository.GetChild(accountId);
+                var customers = await serviceHierachyRepository.GetChild(accountId, isActive);
 
                 List<ServiceHierarchy> list = [parent, .. customers];
 
@@ -127,7 +133,7 @@ namespace BillingApiTres.Controllers.ServiceHierachies
         {
             var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
 
-            var allContracts = await serviceHierachyRepository.All(request.Offset, request.Limit);
+            var allContracts = serviceHierachyRepository.GetList(null, null, null, request.Offset, request.Limit);
             var allContractedIds = allContracts.Select(a => a.AccountId);
 
             var accounts = await gwClient

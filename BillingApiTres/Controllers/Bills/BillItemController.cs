@@ -91,7 +91,7 @@ namespace BillingApiTres.Controllers.Bills
                     })));
 
             return new PaginationResponse<BillDetailResponse>(response,
-                                                              allDetails.Count(),
+                                                              response.Count(),
                                                               request.Offset,
                                                               request.Limit);
         }
