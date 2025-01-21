@@ -160,6 +160,7 @@ namespace BillingApiTres
 
             app.UseTimezoneHeaderChecker();
             app.UseAccountHeaderChecker();
+            app.UseMiddleware<ReadRequestBodyMiddleware>();
 
             app.Run();
         }

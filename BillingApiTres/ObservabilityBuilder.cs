@@ -1,4 +1,5 @@
-﻿using BillingApiTres.Converters;
+﻿using BillingApiTres.Constants;
+using BillingApiTres.Converters;
 using Microsoft.AspNetCore.HttpLogging;
 using Serilog;
 using Serilog.Events;
@@ -11,7 +12,7 @@ namespace BillingApiTres
         public static WebApplicationBuilder ConfigureObservabilities(this WebApplicationBuilder builder)
         {
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
                 .CreateBootstrapLogger();
@@ -27,13 +28,11 @@ namespace BillingApiTres
             builder.Host.UseSerilog((context, serviceProvider, configuration) =>
             {
                 configuration
-                .MinimumLevel.Debug()
+                //.MinimumLevel.Debug()
                 .ReadFrom.Configuration(builder.Configuration)
                 .ReadFrom.Services(serviceProvider)
                 .Enrich.WithProperty("AppNames", "Billing3")
-                .Enrich.FromLogContext()
-                .WriteTo.Console(formatter: new JsonFormatter())
-                .WriteTo.Debug(new JsonFormatter());
+                .Enrich.FromLogContext();
             });
             return builder;
         }
@@ -43,11 +42,14 @@ namespace BillingApiTres
             app.UseSerilogRequestLogging(options =>
             {
                 options.MessageTemplate =
-                "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms. Request-Body: {RequestBody}";
+                "User: {User} " +
+                "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms. " +
+                "Request-Body: {@RequestBody} " +
+                "Reponse-Body: {@ResponseBody}";
 
                 options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
                 {
-                    diagnosticContext.Set("RequestBody", GetRequestBody(httpContext));
+                    diagnosticContext.Set("RequestBody", httpContext.Items[HttpConstants.RequestBody] ?? string.Empty);
                     diagnosticContext.Set("QueryString", httpContext.Request.QueryString.Value ?? string.Empty);
                     diagnosticContext.Set("ContentType", httpContext.Request.ContentType ?? string.Empty);
                     diagnosticContext.Set("Host", httpContext.Request.Host.Value);
@@ -73,29 +75,6 @@ namespace BillingApiTres
                 };
             });
             return app;
-        }
-
-        private static string GetRequestBody(HttpContext httpContext)
-        {
-            if (httpContext.Request.Method == "GET" ||
-                httpContext.Request.ContentLength == null ||
-                httpContext.Request.ContentLength == 0)
-            {
-                return string.Empty;
-            }
-
-            try
-            {
-                httpContext.Request.EnableBuffering();
-                using var reader = new StreamReader(httpContext.Request.Body, leaveOpen: true);
-                var body = reader.ReadToEndAsync().Result;
-                httpContext.Request.Body.Position = 0;
-                return body;
-            }
-            catch
-            {
-                return "[Error reading request body]";
-            }
         }
     }
 }
