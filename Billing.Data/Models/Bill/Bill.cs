@@ -148,6 +148,8 @@ public partial class Bill
     [Unicode(false)]
     public string? KeyId { get; set; }
 
+    public bool IsDelete { get; set; }
+
     [InverseProperty("Bill")]
     public virtual ICollection<BillItem> BillItems { get; set; } = new List<BillItem>();
 }
