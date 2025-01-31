@@ -26,6 +26,7 @@ namespace Billing.EF.Repositories
             if (offset != null && limit != null)
                 query = query.Skip(offset.Value).Take(limit.Value);
 
+            query = query.Where(b => b.IsDelete == false);
             query.OrderBy(b => b.BillDate);
 
             return query.ToList();
@@ -33,17 +34,15 @@ namespace Billing.EF.Repositories
 
         public List<Bill> GetLatestPublishedBill(IEnumerable<(DateTime BillDate, long BuyerAccountId, long? ConsumptionAccountId)> conditions)
         {
-            //var query = billContext.Bills
-            //    .Where(b => conditions.Any(c => b.BillDate == c.billdate
-            //                                    && b.BuyerAccountId == c.buyerAccountId
-            //                                    && b.ConsumptionAccountId == c.comsumptionAccountId));
+            var query = billContext.Bills
+                .Where(b => b.IsDelete == false)
+                .AsQueryable();
 
-            var query = billContext.Bills.AsQueryable();
             var predicate = PredicateBuilder.False<Bill>();
 
             foreach (var condition in conditions)
             {
-                predicate = predicate.Or(b => 
+                predicate = predicate.Or(b =>
                     b.BillDate == condition.BillDate
                     && b.BuyerAccountId == condition.BuyerAccountId
                     && b.ConsumptionAccountId == condition.ConsumptionAccountId);
@@ -63,12 +62,17 @@ namespace Billing.EF.Repositories
                                                 List<long>? billIds,
                                                 int? offset,
                                                 int? limit,
-                                                bool isNoTracking = false)
+                                                bool isNoTracking = false,
+                                                bool includeDelete = false)
         {
-            var query = billContext.Bills
-                .Include(b => b.BillItems)
-                .ThenInclude(bi => bi.Product)
-                .AsQueryable();
+            var query = billContext.Bills.AsQueryable();
+
+            if (includeDelete == false)
+                query = query.Where(b => b.IsDelete == false);
+
+            query = query.Include(b => b.BillItems)
+                         .ThenInclude(bi => bi.Product)
+                         .AsQueryable();
 
             if (accountIds?.Any() == true)
                 query = query.Where(b => accountIds.Contains(b.BuyerAccountId) || accountIds.Contains(b.SellerAccountId));
@@ -90,7 +94,7 @@ namespace Billing.EF.Repositories
         public int UpdateStatus(string statusCode, IEnumerable<long> billIds)
         {
             var count = billContext.Bills
-                .Where(b => billIds.Contains(b.BillId))
+                .Where(b => b.IsDelete == false && billIds.Contains(b.BillId))
                 .ExecuteUpdate(b => b.SetProperty(p => p.StatusCode, statusCode));
 
             return count;
@@ -111,6 +115,45 @@ namespace Billing.EF.Repositories
             var count = billContext.SaveChanges();
 
             return bills.Where(b => b.BillId > 0).ToList();
+        }
+
+        public async Task Delete(IEnumerable<long> billIds)
+        {
+            var bills = billContext.Bills
+                .Where(b => billIds.Contains(b.BillId))
+                .Include(b => b.BillItems)
+                .AsQueryable();
+
+            var dt = DateTime.UtcNow;
+            foreach (var bill in bills)
+            {
+                bill.SavedAt = dt;
+                bill.IsDelete = true;
+                foreach (var item in bill.BillItems)
+                {
+                    item.SavedAt = dt;
+                    item.IsDelete = true;
+                }
+            }
+
+            await billContext.SaveChangesAsync();
+        }
+
+        public async Task Delete(IEnumerable<Bill> bills)
+        {
+            var dt = DateTime.UtcNow;
+            foreach (var bill in bills)
+            {
+                bill.SavedAt = dt;
+                bill.IsDelete = true;
+                foreach (var item in bill.BillItems)
+                {
+                    item.SavedAt = dt;
+                    item.IsDelete = true;
+                }
+            }
+
+            await billContext.SaveChangesAsync();
         }
     }
 }

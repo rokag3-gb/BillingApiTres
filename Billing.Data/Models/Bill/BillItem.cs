@@ -65,6 +65,8 @@ public partial class BillItem
     [Unicode(false)]
     public string? SaverId { get; set; }
 
+    public bool IsDelete { get; set; }
+
     [ForeignKey("BillId")]
     [InverseProperty("BillItems")]
     public virtual Bill Bill { get; set; } = null!;

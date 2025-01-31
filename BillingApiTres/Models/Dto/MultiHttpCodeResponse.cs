@@ -3,11 +3,11 @@ using System.Net;
 
 namespace BillingApiTres.Models.Dto
 {
-    public record MultiHttpCodeResponse
+    public record MultiHttpCodeResponse<T>
     {
         private List<CodeResponse> _fails = new List<CodeResponse>();
 
-        public List<BillResponse> Success { get; set; } = new List<BillResponse>();
+        public List<T> Success { get; set; } = new List<T>();
         public ReadOnlyCollection<CodeResponse> Fails { get; private set; } = ReadOnlyCollection<CodeResponse>.Empty;
 
         public void AddFail(int httpStatusCode, IEnumerable<long> ids)

@@ -7,6 +7,7 @@ using BillingApiTres.Extensions;
 using BillingApiTres.Models.Clients;
 using BillingApiTres.Models.Configurations;
 using BillingApiTres.Models.Dto;
+using BillingApiTres.Models.Dto.Bills;
 using BillingApiTres.Models.Validations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Validations;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Collections.Immutable;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Security.Claims;
 
@@ -153,13 +155,12 @@ namespace BillingApiTres.Controllers.Bills
         /// <summary>
         /// 대상 청구서를 고객용 청구서로 생성합니다
         /// </summary>
-        /// <response code="200">정상 생성</response>
         /// <response code="400">미확정 상태인 청구서를 생성하는 경우</response>
         /// <response code="424">고객의 계약 관련 상품(Bill.dbo.Product)의 레코드가 존재하지 않거나 찾을 수 없는 경우</response>
         /// <response code="422">고객용으로 생성된 청구서를 다시 생성하려고 하는 경우</response>
         /// <response code="409">같은 월, 같은 고객, 같은 청구 금액으로 청구서가 이미 생성되어 있음</response>
         [HttpPost("/bills/customer")]
-        public async Task<ActionResult<MultiHttpCodeResponse>> CreateCustomerBills([FromBody] CustomerBillCreateRequest request)
+        public async Task<ActionResult<MultiHttpCodeResponse<BillResponse>>> CreateCustomerBills([FromBody] CustomerBillCreateRequest request)
         {
             var bills = billRepository
                 .GetRangeWithRelations(null,
@@ -179,7 +180,7 @@ namespace BillingApiTres.Controllers.Bills
             if (HttpContext.AuthenticateAccountId(accountIds) == false)
                 return Forbid();
 
-            var response = new MultiHttpCodeResponse();
+            var response = new MultiHttpCodeResponse<BillResponse>();
             var billStatusCode = config.GetSection(nameof(BillStatusCode)).Get<BillStatusCode>() ?? new BillStatusCode();
 
             var uncertainedBills = bills.Where(b => b.StatusCode == billStatusCode!.Uncertain).ToList();
@@ -229,7 +230,7 @@ namespace BillingApiTres.Controllers.Bills
             var serviceHierarchies = serviceHierarchyRepository.GetList(accountIds, [accountTypeCode.Acme]).ToHashSet();
             var acmeAccountId = serviceHierarchies.FirstOrDefault(s => s.TypeCode == accountTypeCode.Acme)?.AccountId ?? 1;
             var accounts = await gwClient.Get<List<SalesAccount>>($"sales/account?limit=999999&accountIds={string.Join<long>(",", [.. accountIds, .. new List<long> { acmeAccountId }])}", token?.RawData!);
-            
+
             var copiedBills = bills.Select(b => mapper.Map<Bill>(b,
                     opt => opt.AfterMap((s, d) =>
                     {
@@ -301,7 +302,7 @@ namespace BillingApiTres.Controllers.Bills
 
             var resultCheckDuplicate = CheckDulplicateBill(copiedBills);
             response.AddFail(resultCheckDuplicate.Fails);
-            
+
             var failedBillIds = response.Fails.SelectMany(f => f.EntityIds).ToList();
             var failedBills = copiedBills.Where(cb => failedBillIds.Contains(cb.OriginalBillId)).ToList();
             failedBills.ForEach(fb => copiedBills.Remove(fb));
@@ -342,17 +343,96 @@ namespace BillingApiTres.Controllers.Bills
             return Ok(response);
         }
 
-        private MultiHttpCodeResponse CheckDulplicateBill(IEnumerable<Bill> bills)
+        /// <summary>
+        /// 대상 청구서를 삭제합니다.
+        /// </summary>
+        /// <response code="400">확정 상태인 청구서를 삭제하는 경우 / 요청 인자에 bill id가 없는 경우 / 요청한 사용자의 account가 확인되지 않는 경우</response>
+        /// <response code="422">원청구서를 삭제하는 경우</response>
+        [HttpDelete("/bills")]
+        public async Task<ActionResult<MultiHttpCodeResponse<long>>> DeleteBill([FromBody] BillDeleteRequest request)
         {
-            var response = new MultiHttpCodeResponse();
+            var response = new MultiHttpCodeResponse<long>();
+
+            if (request.BillIds.Any() == false)
+                return BadRequest("Bill Id 값이 비었습니다.");
+
+            var bills = billRepository
+                .GetRangeWithRelations(null,
+                                       null,
+                                       null,
+                                       request.BillIds,
+                                       null,
+                                       null,
+                                       false,
+                                       true);
+
+            var accountIds = bills.SelectMany(b => new[] { b.BuyerAccountId, b.ConsumptionAccountId })
+                                      .Where(a => a.HasValue)
+                                      .Select(a => a!.Value)
+                                      .Distinct()
+                                      .ToHashSet();
+
+            if (HttpContext.AuthenticateAccountId(accountIds) == false)
+                return Forbid();
+
+            var token = JwtConverter.ExtractJwtToken(HttpContext.Request);
+            var accountUsers = await gwClient.Get<List<AccountUser>>($"sales/accountUser?userUuid={token!.Subject}", token!.RawData);
+
+            if (accountUsers == null || accountUsers.Any() == false)
+                return BadRequest("사용자의 account가 확인되지 않습니다");
+
+            //이미 삭제된 청구서 처리
+            var deletedBills = bills.Where(b => b.IsDelete == true).ToList();
+
+            if (bills.Count == deletedBills.Count)
+            {
+                response.Success.AddRange(request.BillIds);
+                return Ok(response);
+            }
+            deletedBills.ForEach(b => bills.Remove(b));
+
+            //청구서 상태 확인. 확정 상태 청구서는 삭제할 수 없다.
+            var billStatusCode = config.GetSection(nameof(BillStatusCode)).Get<BillStatusCode>() ?? new BillStatusCode();
+            var certainedBills = bills.Where(b => b.StatusCode == billStatusCode.Certain).ToList();
+            foreach (var centainedBill in certainedBills)
+            {
+                bills.Remove(centainedBill);
+            }
+            if (certainedBills.Any())
+                response.AddFail(StatusCodes.Status400BadRequest, certainedBills.Select(b => b.BillId));
+
+            ///청구서 엔티티에는 매입 매출의 구분이 없다. 같은 레코드도 조회 대상에 따라 매입/매출이 다를 수 있다.
+            ///ex)acme가 발행한 고객용 청구서의 경우 - acme)매출 / 고객)매입
+            ///청구서의 구매처(BuyerAccountId)와 로그인 유저의 accountId가 같으면 매입 청구서로 간주함.
+            ///기존 user에 여러 account를 설정할 수 있을 경우엔 매입/매출 구분 기준으로 사용할 수 없는 문제
+            ///를 해결하기 위해 user에는 단일 account만 할당할 수 있도록 변경 됨. 
+            var purchaseBills = bills.Where(b => b.BuyerAccountId == accountUsers.First().AccountId).ToList();
+            foreach (var purchaseBill in purchaseBills)
+            {
+                bills.Remove(purchaseBill);
+            }
+            response.AddFail(StatusCodes.Status422UnprocessableEntity, purchaseBills.Select(b => b.BillId));
+
+            if (bills.Any())
+                await billRepository.Delete(bills);
+
+            var deleteBillIds = deletedBills.Select(b => b.BillId)
+                                            .Union(bills.Select(b => b.BillId));
+            response.Success.AddRange(deleteBillIds);
+            return response;
+        }
+
+        private MultiHttpCodeResponse<BillResponse> CheckDulplicateBill(IEnumerable<Bill> bills)
+        {
+            var response = new MultiHttpCodeResponse<BillResponse>();
 
             var publishedBill = billRepository.GetLatestPublishedBill(
-                bills.Select(b => 
+                bills.Select(b =>
                     ValueTuple.Create(b.BillDate,
                                       b.BuyerAccountId,
                                       b.ConsumptionAccountId)));
 
-            var duplicatBills = bills.Where(b => 
+            var duplicatBills = bills.Where(b =>
                 publishedBill.Select(pb =>
                     (pb.BillDate, pb.BuyerAccountId, pb.ConsumptionAccountId, pb.Amount))
                              .Any(s => b.BillDate == s.BillDate
@@ -365,9 +445,9 @@ namespace BillingApiTres.Controllers.Bills
             return response;
         }
 
-        private MultiHttpCodeResponse CustomerNcpServices(List<BillItem> billItems)
+        private MultiHttpCodeResponse<BillResponse> CustomerNcpServices(List<BillItem> billItems)
         {
-            var response = new MultiHttpCodeResponse();
+            var response = new MultiHttpCodeResponse<BillResponse>();
 
             var nullKeyIdBillItems = billItems
                 .Where(bi => string.IsNullOrEmpty(bi.KeyId)
@@ -422,9 +502,9 @@ namespace BillingApiTres.Controllers.Bills
             return response;
         }
 
-        private MultiHttpCodeResponse CheckComAccountBillItem(IEnumerable<BillItem> billItems)
+        private MultiHttpCodeResponse<BillResponse> CheckComAccountBillItem(IEnumerable<BillItem> billItems)
         {
-            var response = new MultiHttpCodeResponse();
+            var response = new MultiHttpCodeResponse<BillResponse>();
 
             var configCode = config.GetSection(nameof(ContractChargeCode)).Get<ContractChargeCode>() ?? new ContractChargeCode();
             var productCode = config.GetSection(nameof(ProductCode)).Get<ProductCode>() ?? new ProductCode();
@@ -465,9 +545,9 @@ namespace BillingApiTres.Controllers.Bills
             return response;
         }
 
-        private MultiHttpCodeResponse CheckPcpAccountBillItem(IEnumerable<BillItem> billItems)
+        private MultiHttpCodeResponse<BillResponse> CheckPcpAccountBillItem(IEnumerable<BillItem> billItems)
         {
-            var response = new MultiHttpCodeResponse();
+            var response = new MultiHttpCodeResponse<BillResponse>();
 
             var configCode = config.GetSection(nameof(ContractChargeCode)).Get<ContractChargeCode>();
             var productCode = config.GetSection(nameof(ProductCode)).Get<ProductCode>();
@@ -553,9 +633,9 @@ namespace BillingApiTres.Controllers.Bills
             return response;
         }
 
-        private MultiHttpCodeResponse CheckWorksAccountBillItem(IEnumerable<BillItem> billItems)
+        private MultiHttpCodeResponse<BillResponse> CheckWorksAccountBillItem(IEnumerable<BillItem> billItems)
         {
-            var response = new MultiHttpCodeResponse();
+            var response = new MultiHttpCodeResponse<BillResponse>();
 
             var configCode = config.GetSection(nameof(ContractChargeCode)).Get<ContractChargeCode>() ?? new ContractChargeCode();
             var productCode = config.GetSection(nameof(ProductCode)).Get<ProductCode>() ?? new ProductCode();

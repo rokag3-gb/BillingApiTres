@@ -15,7 +15,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
 
-
 [assembly: ApiController]
 namespace BillingApiTres
 {
@@ -24,6 +23,12 @@ namespace BillingApiTres
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            #region Observabilities
+
+
+            builder.ConfigureObservabilities();
+            #endregion
 
             // Add services to the container.
             #region regist repositories
@@ -44,7 +49,7 @@ namespace BillingApiTres
 
             builder.Services.AddTransient<CurrencyConverter>();
             builder.Services.AddTransient<ITimeZoneConverter, IanaDatetimeConverter>();
-            
+
             builder.Services.AddSingleton<ServiceAccountTokenStorage>();
             builder.Services.Configure<ServiceAccountRequestBody>(
                 builder.Configuration.GetSection("ServiceAccount"));
@@ -107,34 +112,43 @@ namespace BillingApiTres
                     }
                 });
 
-                //#if DEBUG
                 options.OperationFilter<SwaggerCustomHeader>();
-                //#endif
             });
 
             builder.Services.AddDbContext<IAMContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration["IamDbConnection"]);
-                options.EnableSensitiveDataLogging();
+                if (string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+                                  Environments.Development,
+                                  StringComparison.OrdinalIgnoreCase))
+                    options.EnableSensitiveDataLogging();
             });
             builder.Services.AddDbContext<SaleContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration["SaleDbConnection"]);
-                options.EnableSensitiveDataLogging();
+                if (string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+                                  Environments.Development,
+                                  StringComparison.OrdinalIgnoreCase))
+                    options.EnableSensitiveDataLogging();
             });
             builder.Services.AddDbContext<BillContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration["BillDbConnection"]);
-                options.EnableSensitiveDataLogging();
+                if (string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+                                  Environments.Development,
+                                  StringComparison.OrdinalIgnoreCase))
+                    options.EnableSensitiveDataLogging();
             });
 
 
-            var app = builder.Build();
 
+            var app = builder.Build();
             app.UseAuthentication();
+
+            app.UseSerilogFeatures();
+
             app.UseAuthorization();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -146,6 +160,7 @@ namespace BillingApiTres
 
             app.UseTimezoneHeaderChecker();
             app.UseAccountHeaderChecker();
+            app.UseMiddleware<ReadRequestBodyMiddleware>();
 
             app.Run();
         }
