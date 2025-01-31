@@ -16,7 +16,7 @@ namespace Billing.EF.Repositories
             var query = billContext.BillItems
                 .Include(bi => bi.Product)
                 .Include(bi => bi.Bill)
-                .Where(bi => bi.BillId == billId);
+                .Where(bi => bi.IsDelete == false && bi.BillId == billId);
 
             if (offset.HasValue && limit.HasValue)
                 query = query.Skip(offset.Value).Take(limit.Value);
@@ -28,6 +28,7 @@ namespace Billing.EF.Repositories
         {
             var ncpBillItems = billContext.BillItems
                 .Where(bi => bi.BillId == billId)
+                .Where(bi => bi.IsDelete == false)
                 .Where(bi => bi.VendorCode == "VEN-NCP")
                 .Include(bi => bi.Bill)
                 .AsNoTracking()
