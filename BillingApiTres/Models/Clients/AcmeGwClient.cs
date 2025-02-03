@@ -25,21 +25,25 @@ namespace BillingApiTres.Models.Clients
             try
             {
                 response.EnsureSuccessStatusCode();
-                using var responseStream = await response.Content.ReadAsStreamAsync();
 
-                T obj = default!;
-                obj = JsonSerializer.Deserialize<T>(responseStream)!;
-
+                T obj = await response.Content.ReadFromJsonAsync<T>() ?? default!;
                 return obj!;
             }
             catch (HttpRequestException ex)
             {
-                logger.LogError(ex, "Sales API에서 코드 값을 가져오지 못했습니다.");
-                return default!;
+                logger.LogError(ex, $"외부 API({combinedUri}) 호출 에러");
+
+                if (ex.StatusCode.HasValue && (int)ex.StatusCode >= 400 && (int)ex.StatusCode < 500)
+                {
+                    var innerMessage = await response.Content.ReadAsStringAsync();
+                    throw new BadHttpRequestException($"{ex.Message} -- {innerMessage}");
+                }
+
+                throw;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"지정된 형식{typeof(T).ToString()}로 역직렬화하지 못했습니다.");
+                logger.LogError(ex, ex.Message);
                 return default!;
             }
         }
@@ -59,18 +63,22 @@ namespace BillingApiTres.Models.Clients
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", serviceAccountToken);
 
             var response = await httpClient.SendAsync(request, CancellationToken.None);
+            var content = string.Empty;
 
             try
             {
                 response.EnsureSuccessStatusCode();
-                using var responseStream = await response.Content.ReadAsStreamAsync();
 
-                StreamReader sr = new StreamReader(responseStream);
-                return await sr.ReadToEndAsync();
+                content = await response.Content.ReadAsStringAsync();
+                return content;
             }
             catch (HttpRequestException ex)
             {
                 logger.LogError(ex, $"외부 API({combinedUri})에서 값을 가져오지 못했습니다.");
+
+                if (ex.StatusCode.HasValue && (int)ex.StatusCode >= 400 && (int)ex.StatusCode < 500)
+                    throw new BadHttpRequestException($"{ex.Message} -- {content}");
+
                 throw;
             }
             catch (Exception ex)
