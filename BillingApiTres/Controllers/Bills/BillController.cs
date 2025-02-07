@@ -411,7 +411,8 @@ namespace BillingApiTres.Controllers.Bills
             {
                 bills.Remove(purchaseBill);
             }
-            response.AddFail(StatusCodes.Status422UnprocessableEntity, purchaseBills.Select(b => b.BillId));
+            if (purchaseBills.Any())
+                response.AddFail(StatusCodes.Status422UnprocessableEntity, purchaseBills.Select(b => b.BillId));
 
             if (bills.Any())
                 await billRepository.Delete(bills);
