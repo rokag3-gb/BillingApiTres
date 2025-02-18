@@ -60,12 +60,25 @@ namespace BillingApiTres.Controllers.Bills
                 .Where(i => i >= 1).ToList();
 
             //get bills
-            var bills = billRepository.GetRange(timeZoneConverter.ConvertToUtc(request.From, tz!),
+            var bills = billRepository.GetRangeWithRelations(timeZoneConverter.ConvertToUtc(request.From, tz!),
                                                 timeZoneConverter.ConvertToUtc(request.To, tz!),
                                                 accountIds,
                                                 null,
                                                 request.Offset,
-                                                request.limit);
+                                                request.limit,
+                                                true);
+
+            var masters = ncpRepository.GetLatestMasters(bills.Select(b => b.BillItems.FirstOrDefault()?.KeyId ?? string.Empty))
+                                       .ToHashSet();
+
+            bills.Select(b => b.BillItems.FirstOrDefault()).ToList()
+                .ForEach(bi =>
+                {
+                    if (bi != null)
+                    {
+                        bi.NcpMaster = masters.FirstOrDefault(m => m.KeyId == bi.KeyId);
+                    }
+                });
 
             //get status codes
             var codes = new List<SaleCode>();
@@ -94,6 +107,8 @@ namespace BillingApiTres.Controllers.Bills
             var usedAccountIds = bills.SelectMany(b => new[] { b.SellerAccountId, b.BuyerAccountId, b.ConsumptionAccountId }).Distinct().Where(a => a != null).Cast<long>();
             var accounts = await gwClient.Get<List<SalesAccount>>($"sales/account?limit=999999&accountIds={string.Join(",", usedAccountIds)}", token?.RawData!);
 
+            var cloudVendorCode = config.GetSection(nameof(CloudVendorCode)).Get<CloudVendorCode>() ?? new CloudVendorCode();
+
             var response = bills.Select(b =>
             {
                 return mapper.Map<BillResponse>(b, opt =>
@@ -118,6 +133,8 @@ namespace BillingApiTres.Controllers.Bills
                             br.ConsumptionStartDate = timeZoneConverter.ConvertToLocal(b.ConsumptionStartDate.Value, tz);
                         if (b.ConsumptionEndDate.HasValue)
                             br.ConsumptionEndDate = timeZoneConverter.ConvertToLocal(b.ConsumptionEndDate.Value, tz);
+                        if (b.BillItems.FirstOrDefault()?.VendorCode == cloudVendorCode.NCP)
+                            br.AccountInfo = $"{b.BillItems.First().NcpMaster?.Zone}-{b.BillItems.First().NcpMaster?.Account}";
                         br.SavedAt = timeZoneConverter.ConvertToLocal(b.SavedAt, tz);
                     });
                 });
@@ -227,6 +244,7 @@ namespace BillingApiTres.Controllers.Bills
             var users = await gwClient.Get<List<IamUserEntity>>($"iam/users?ids={string.Join(",", userIds)}", token?.RawData!);
 
             var accountTypeCode = config.GetSection(nameof(AccountTypeCode)).Get<AccountTypeCode>() ?? new AccountTypeCode();
+            CloudVendorCode cloudVendorCode = config.GetSection(nameof(CloudVendorCode)).Get<CloudVendorCode>() ?? new CloudVendorCode();
             var serviceHierarchies = serviceHierarchyRepository.GetList(accountIds, [accountTypeCode.Acme]).ToHashSet();
             var acmeAccountId = serviceHierarchies.FirstOrDefault(s => s.TypeCode == accountTypeCode.Acme)?.AccountId ?? 1;
             var accounts = await gwClient.Get<List<SalesAccount>>($"sales/account?limit=999999&accountIds={string.Join<long>(",", [.. accountIds, .. new List<long> { acmeAccountId }])}", token?.RawData!);
@@ -283,17 +301,14 @@ namespace BillingApiTres.Controllers.Bills
 
             foreach (var billItems in billItemByVendor)
             {
-                switch (billItems.Key)
+                if (billItems.Key == cloudVendorCode.NCP)
                 {
-                    case "VEN-NCP":
-                        var ncpResponse = CustomerNcpServices(billItems.ToList());
-                        response.AddFail(ncpResponse.Fails);
-                        break;
-                    case "VEN-AWS":
-                        //aws 사용 고객 청구서 생성
-                        break;
-                    default:
-                        break;
+                    var ncpResponse = CustomerNcpServices(billItems.ToList());
+                    response.AddFail(ncpResponse.Fails);
+                }
+                else if (billItems.Key == cloudVendorCode.AWS)
+                {
+                    //aws 사용 고객 청구서 생성
                 }
             }
 

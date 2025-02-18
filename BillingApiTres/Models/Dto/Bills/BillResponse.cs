@@ -34,5 +34,6 @@ namespace BillingApiTres.Models.Dto
         public DateTime SavedAt { get; set; }
         public string? SaverId { get; set; }
         public string? SaverName { get; set; }
+        public string AccountInfo { get; set; }
     }
 }
