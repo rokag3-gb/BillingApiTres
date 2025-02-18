@@ -43,6 +43,7 @@ namespace BillingApiTres.Controllers.Bills
         [HttpGet("/bills")]
         public async Task<ActionResult<List<BillResponse>>> GetList([FromQuery] BillListRequest request)
         {
+            request.To = request.To.EndOfDay();
             if (request.From.CompareTo(request.To) > 0)
                 return BadRequest($"검색 기간 설정 오류 : {request.From} ~ {request.To}");
 

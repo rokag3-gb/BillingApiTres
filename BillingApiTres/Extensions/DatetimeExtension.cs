@@ -15,7 +15,9 @@
         /// </summary>
         public static DateTime EndOfDay(this DateTime dateTime)
         {
-            return dateTime.Date.AddDays(1).AddSeconds(-1);
+            if (dateTime.TimeOfDay == new TimeSpan(12, 0, 0))
+                return dateTime.Date.AddDays(1).AddTicks(-1);
+            return dateTime;
         }
     }
 }
